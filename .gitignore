@@ -1,8 +1,8 @@
 *~
 
-minetestmapper
-minetestmapper.exe
-colors.txt
+/minetestmapper
+/minetestmapper.exe
+/colors.txt
 
 CMakeCache.txt
 CMakeFiles/
@@ -12,3 +12,4 @@ install_manifest.txt
 Makefile
 cmake_install.cmake
 cmake_config.h
+compile_commands.json

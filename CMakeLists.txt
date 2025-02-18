@@ -43,7 +43,7 @@ if(NOT CUSTOM_DOCDIR STREQUAL "")
         message(STATUS "Using DOCDIR=${DOCDIR}")
 endif()
 
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 # Libraries: gd
 
@@ -146,19 +146,9 @@ endif(ENABLE_REDIS)
 
 # Compiling & Linking
 
-include_directories(
-	"${PROJECT_BINARY_DIR}"
-	"${CMAKE_CURRENT_SOURCE_DIR}/include"
-	"${CMAKE_CURRENT_BINARY_DIR}"
-	${SQLITE3_INCLUDE_DIR}
-	${LIBGD_INCLUDE_DIR}
-	${ZLIB_INCLUDE_DIR}
-	${ZSTD_INCLUDE_DIR}
-)
-
 configure_file(
-	"${PROJECT_SOURCE_DIR}/include/cmake_config.h.in"
-	"${PROJECT_BINARY_DIR}/cmake_config.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/cmake_config.h.in"
+	"${CMAKE_CURRENT_BINARY_DIR}/cmake_config.h"
 )
 add_definitions(-DUSE_CMAKE_CONFIG_H)
 
@@ -166,29 +156,46 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 	set(CMAKE_CXX_FLAGS_DEBUG "-Og -g2")
 	add_compile_options(-Wall -pipe)
+elseif(MSVC)
+	add_compile_options(/GR- /Zl)
 endif()
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
 	add_definitions(-DNDEBUG)
 endif()
 
-add_executable(minetestmapper
-	BlockDecoder.cpp
-	PixelAttributes.cpp
-	PlayerAttributes.cpp
-	TileGenerator.cpp
-	ZlibDecompressor.cpp
-	ZstdDecompressor.cpp
-	Image.cpp
-	mapper.cpp
-	util.cpp
-	db-sqlite3.cpp
-	$<$<BOOL:${USE_POSTGRESQL}>:db-postgresql.cpp>
-	$<$<BOOL:${USE_LEVELDB}>:db-leveldb.cpp>
-	$<$<BOOL:${USE_REDIS}>:db-redis.cpp>
+add_executable(minetestmapper)
+
+target_include_directories(minetestmapper PRIVATE
+	"${CMAKE_CURRENT_SOURCE_DIR}"
+	"${CMAKE_CURRENT_BINARY_DIR}"
 )
 
-target_link_libraries(
-	minetestmapper
+target_sources(minetestmapper PRIVATE
+	src/BlockDecoder.cpp
+	src/PixelAttributes.cpp
+	src/PlayerAttributes.cpp
+	src/TileGenerator.cpp
+	src/ZlibDecompressor.cpp
+	src/ZstdDecompressor.cpp
+	src/Image.cpp
+	src/mapper.cpp
+	src/util.cpp
+	src/db-sqlite3.cpp
+	$<$<BOOL:${USE_POSTGRESQL}>:src/db-postgresql.cpp>
+	$<$<BOOL:${USE_LEVELDB}>:src/db-leveldb.cpp>
+	$<$<BOOL:${USE_REDIS}>:src/db-redis.cpp>
+)
+
+target_include_directories(minetestmapper PRIVATE
+	"${CMAKE_CURRENT_SOURCE_DIR}/src"
+	"${CMAKE_CURRENT_BINARY_DIR}"
+	${SQLITE3_INCLUDE_DIR}
+	${LIBGD_INCLUDE_DIR}
+	${ZLIB_INCLUDE_DIR}
+	${ZSTD_INCLUDE_DIR}
+)
+
+target_link_libraries(minetestmapper
 	${SQLITE3_LIBRARY}
 	${PostgreSQL_LIBRARIES}
 	${LEVELDB_LIBRARY}
