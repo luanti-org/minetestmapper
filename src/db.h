@@ -43,8 +43,8 @@ typedef std::list<Block> BlockList;
 class DB {
 protected:
 	// Helpers that implement the hashed positions used by most backends
-	inline int64_t  encodeBlockPos(const BlockPos pos) const;
-	inline BlockPos decodeBlockPos(int64_t hash) const;
+	static inline int64_t  encodeBlockPos(const BlockPos pos);
+	static inline BlockPos decodeBlockPos(int64_t hash);
 
 public:
 	/* Return all block positions inside the range given by min and max,
@@ -98,7 +98,7 @@ static inline int64_t pythonmodulo(int64_t i, int64_t mod)
 }
 
 
-inline int64_t DB::encodeBlockPos(const BlockPos pos) const
+inline int64_t DB::encodeBlockPos(const BlockPos pos)
 {
 	return (uint64_t) pos.z * 0x1000000 +
 		(uint64_t) pos.y * 0x1000 +
@@ -106,7 +106,7 @@ inline int64_t DB::encodeBlockPos(const BlockPos pos) const
 }
 
 
-inline BlockPos DB::decodeBlockPos(int64_t hash) const
+inline BlockPos DB::decodeBlockPos(int64_t hash)
 {
 	BlockPos pos;
 	pos.x = unsigned_to_signed(pythonmodulo(hash, 4096), 2048);

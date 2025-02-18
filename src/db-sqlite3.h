@@ -17,16 +17,24 @@ public:
 	bool preferRangeQueries() const override { return false; }
 
 private:
-	inline void getPosRange(int64_t &min, int64_t &max, int16_t zPos,
-			int16_t zPos2) const;
+	static inline void getPosRange(int64_t &min, int64_t &max, int16_t zPos,
+			int16_t zPos2);
 	void loadBlockCache(int16_t zPos);
 
-	sqlite3 *db;
+	static inline ustring read_blob(sqlite3_stmt *stmt, int iCol)
+	{
+		auto *data = reinterpret_cast<const unsigned char *>(
+			sqlite3_column_blob(stmt, iCol));
+		size_t size = sqlite3_column_bytes(stmt, iCol);
+		return ustring(data, size);
+	}
 
-	sqlite3_stmt *stmt_get_block_pos;
-	sqlite3_stmt *stmt_get_block_pos_z;
-	sqlite3_stmt *stmt_get_blocks_z;
-	sqlite3_stmt *stmt_get_block_exact;
+	sqlite3 *db = NULL;
+
+	sqlite3_stmt *stmt_get_block_pos = NULL;
+	sqlite3_stmt *stmt_get_block_pos_z = NULL;
+	sqlite3_stmt *stmt_get_blocks_z = NULL;
+	sqlite3_stmt *stmt_get_block_exact = NULL;
 
 	int16_t blockCachedZ = -10000;
 	std::unordered_map<int16_t, BlockList> blockCache; // indexed by X
