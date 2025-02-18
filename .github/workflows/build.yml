@@ -37,8 +37,7 @@ jobs:
 
       - name: Test
         run: |
-          source util/ci/script.sh
-          do_functional_test
+          ./util/ci/test.sh
 
   clang:
     runs-on: ubuntu-22.04
@@ -59,5 +58,4 @@ jobs:
 
       - name: Test
         run: |
-          source util/ci/script.sh
-          do_functional_test
+          ./util/ci/test.sh
