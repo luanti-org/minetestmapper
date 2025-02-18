@@ -153,6 +153,8 @@ TileGenerator::TileGenerator():
 TileGenerator::~TileGenerator()
 {
 	closeDatabase();
+	delete m_image;
+	m_image = nullptr;
 }
 
 void TileGenerator::setBgColor(const std::string &bgColor)
@@ -293,19 +295,24 @@ void TileGenerator::dumpBlock(const std::string &input_path, BlockPos pos)
 
 void TileGenerator::generate(const std::string &input_path, const std::string &output)
 {
-	if (m_dontWriteEmpty) // FIXME: possible too, just needs to be done differently
-		setExhaustiveSearch(EXH_NEVER);
 	openDb(input_path);
 	loadBlocks();
 
-	if (m_dontWriteEmpty && m_positions.empty())
-	{
-		closeDatabase();
+	// If we needed to load positions and there are none, that means the
+	// result will be empty.
+	if (m_dontWriteEmpty && (m_exhaustiveSearch == EXH_NEVER ||
+		m_exhaustiveSearch == EXH_Y) && m_positions.empty()) {
 		return;
 	}
 
 	createImage();
 	renderMap();
+
+	if (m_dontWriteEmpty && !m_renderedAny) {
+		printUnknown();
+		return;
+	}
+
 	closeDatabase();
 	if (m_drawScale) {
 		renderScale();
