@@ -2,7 +2,7 @@
 #include <unistd.h> // for usleep
 #include <iostream>
 #include <algorithm>
-#include <time.h>
+#include <cassert>
 #include "db-sqlite3.h"
 #include "types.h"
 
@@ -43,33 +43,64 @@ DBSQLite3::DBSQLite3(const std::string &mapdir)
 #endif
 	SQLOK(sqlite3_open_v2(db_name.c_str(), &db, flags, 0));
 
-	SQLOK(sqlite3_prepare_v2(db,
-			"SELECT pos, data FROM blocks WHERE pos BETWEEN ? AND ?",
-		-1, &stmt_get_blocks_z, NULL));
+	// There's a simple, dumb way to check if we have a new or old database schema.
+	// If we prepare a statement that references columns that don't exist, it will
+	// error right there.
+	int result = sqlite3_prepare_v2(db, "SELECT x, y, z FROM blocks", -1,
+		&stmt_get_block_pos, NULL);
+	newFormat = result == SQLITE_OK;
+#ifndef NDEBUG
+	std::cerr << "Detected " << (newFormat ? "new" : "old") << " SQLite schema" << std::endl;
+#endif
 
-	SQLOK(sqlite3_prepare_v2(db,
-			"SELECT data FROM blocks WHERE pos = ?",
-		-1, &stmt_get_block_exact, NULL));
+	if (newFormat) {
+		SQLOK(sqlite3_prepare_v2(db,
+				"SELECT y, data FROM blocks WHERE "
+				"x = ? AND z = ? AND y BETWEEN ? AND ?",
+			-1, &stmt_get_blocks_xz_range, NULL));
 
-	SQLOK(sqlite3_prepare_v2(db,
-			"SELECT pos FROM blocks",
-		-1, &stmt_get_block_pos, NULL));
+		SQLOK(sqlite3_prepare_v2(db,
+				"SELECT data FROM blocks WHERE x = ? AND y = ? AND z = ?",
+			-1, &stmt_get_block_exact, NULL));
 
-	SQLOK(sqlite3_prepare_v2(db,
-			"SELECT pos FROM blocks WHERE pos BETWEEN ? AND ?",
-		-1, &stmt_get_block_pos_z, NULL));
+		SQLOK(sqlite3_prepare_v2(db,
+				"SELECT x, y, z FROM blocks WHERE "
+				"x >= ? AND y >= ? AND z >= ? AND "
+				"x < ? AND y < ? AND z < ?",
+			-1, &stmt_get_block_pos_range, NULL));
+	} else {
+		SQLOK(sqlite3_prepare_v2(db,
+				"SELECT pos, data FROM blocks WHERE pos BETWEEN ? AND ?",
+			-1, &stmt_get_blocks_z, NULL));
+
+		SQLOK(sqlite3_prepare_v2(db,
+				"SELECT data FROM blocks WHERE pos = ?",
+			-1, &stmt_get_block_exact, NULL));
+
+		SQLOK(sqlite3_prepare_v2(db,
+				"SELECT pos FROM blocks",
+			-1, &stmt_get_block_pos, NULL));
+
+		SQLOK(sqlite3_prepare_v2(db,
+				"SELECT pos FROM blocks WHERE pos BETWEEN ? AND ?",
+			-1, &stmt_get_block_pos_range, NULL));
+	}
+
+#undef RANGE
 }
 
 
 DBSQLite3::~DBSQLite3()
 {
 	sqlite3_finalize(stmt_get_blocks_z);
+	sqlite3_finalize(stmt_get_blocks_xz_range);
 	sqlite3_finalize(stmt_get_block_pos);
-	sqlite3_finalize(stmt_get_block_pos_z);
+	sqlite3_finalize(stmt_get_block_pos_range);
 	sqlite3_finalize(stmt_get_block_exact);
 
 	if (sqlite3_close(db) != SQLITE_OK) {
-		std::cerr << "Error closing SQLite database." << std::endl;
+		std::cerr << "Error closing SQLite database: "
+			<< sqlite3_errmsg(db) << std::endl;
 	};
 }
 
@@ -88,28 +119,42 @@ std::vector<BlockPos> DBSQLite3::getBlockPos(BlockPos min, BlockPos max)
 	int result;
 	sqlite3_stmt *stmt;
 
-	if(min.z <= -2048 && max.z >= 2048) {
-		stmt = stmt_get_block_pos;
+	if (newFormat) {
+		stmt = stmt_get_block_pos_range;
+		int col = bind_pos(stmt, 1, min);
+		bind_pos(stmt, col, max);
 	} else {
-		stmt = stmt_get_block_pos_z;
-		int64_t minPos, maxPos;
-		if (min.z < -2048)
-			min.z = -2048;
-		if (max.z > 2048)
-			max.z = 2048;
-		getPosRange(minPos, maxPos, min.z, max.z - 1);
-		SQLOK(sqlite3_bind_int64(stmt, 1, minPos));
-		SQLOK(sqlite3_bind_int64(stmt, 2, maxPos));
+		// can handle range query on Z axis via SQL
+		if (min.z <= -2048 && max.z >= 2048) {
+			stmt = stmt_get_block_pos;
+		} else {
+			stmt = stmt_get_block_pos_range;
+			int64_t minPos, maxPos;
+			if (min.z < -2048)
+				min.z = -2048;
+			if (max.z > 2048)
+				max.z = 2048;
+			getPosRange(minPos, maxPos, min.z, max.z - 1);
+			SQLOK(sqlite3_bind_int64(stmt, 1, minPos));
+			SQLOK(sqlite3_bind_int64(stmt, 2, maxPos));
+		}
 	}
 
 	std::vector<BlockPos> positions;
+	BlockPos pos;
 	while ((result = sqlite3_step(stmt)) != SQLITE_DONE) {
 		SQLROW2()
 
-		int64_t posHash = sqlite3_column_int64(stmt, 0);
-		BlockPos pos = decodeBlockPos(posHash);
-		if(pos.x >= min.x && pos.x < max.x && pos.y >= min.y && pos.y < max.y)
-			positions.emplace_back(pos);
+		if (newFormat) {
+			pos.x = sqlite3_column_int(stmt, 0);
+			pos.y = sqlite3_column_int(stmt, 1);
+			pos.z = sqlite3_column_int(stmt, 2);
+		} else {
+			pos = decodeBlockPos(sqlite3_column_int64(stmt, 0));
+			if (pos.x < min.x || pos.x >= max.x || pos.y < min.y || pos.y >= max.y)
+				continue;
+		}
+		positions.emplace_back(pos);
 	}
 	SQLOK(sqlite3_reset(stmt));
 	return positions;
@@ -120,6 +165,8 @@ void DBSQLite3::loadBlockCache(int16_t zPos)
 {
 	int result;
 	blockCache.clear();
+
+	assert(!newFormat);
 
 	int64_t minPos, maxPos;
 	getPosRange(minPos, maxPos, zPos, zPos);
@@ -141,6 +188,25 @@ void DBSQLite3::loadBlockCache(int16_t zPos)
 void DBSQLite3::getBlocksOnXZ(BlockList &blocks, int16_t x, int16_t z,
 		int16_t min_y, int16_t max_y)
 {
+	// New format: use a real range query
+	if (newFormat) {
+		auto *stmt = stmt_get_blocks_xz_range;
+		SQLOK(sqlite3_bind_int(stmt, 1, x));
+		SQLOK(sqlite3_bind_int(stmt, 2, z));
+		SQLOK(sqlite3_bind_int(stmt, 3, min_y));
+		SQLOK(sqlite3_bind_int(stmt, 4, max_y - 1)); // BETWEEN is inclusive
+
+		int result;
+		while ((result = sqlite3_step(stmt)) != SQLITE_DONE) {
+			SQLROW2()
+
+			BlockPos pos(x, sqlite3_column_int(stmt, 0), z);
+			blocks.emplace_back(pos, read_blob(stmt, 1));
+		}
+		SQLOK(sqlite3_reset(stmt));
+		return;
+	}
+
 	/* Cache the blocks on the given Z coordinate between calls, this only
 	 * works due to order in which the TileGenerator asks for blocks. */
 	if (z != blockCachedZ) {
@@ -180,8 +246,7 @@ void DBSQLite3::getBlocksByPos(BlockList &blocks,
 	int result;
 
 	for (auto pos : positions) {
-		int64_t dbPos = encodeBlockPos(pos);
-		SQLOK(sqlite3_bind_int64(stmt_get_block_exact, 1, dbPos));
+		bind_pos(stmt_get_block_exact, 1, pos);
 
 		SQLROW1(stmt_get_block_exact)
 		if (result == SQLITE_ROW)

@@ -415,8 +415,8 @@ void TileGenerator::openDb(const std::string &input_path)
 	} else if (m_exhaustiveSearch == EXH_FULL || m_exhaustiveSearch == EXH_Y) {
 		if (m_db->preferRangeQueries()) {
 			std::cerr << "Note: The current database backend supports efficient "
-				"range queries, forcing exhaustive search should always result "
-				" in worse performance." << std::endl;
+				"range queries, forcing exhaustive search will generally result "
+				"in worse performance." << std::endl;
 		}
 	}
 	assert(m_exhaustiveSearch != EXH_AUTO);
