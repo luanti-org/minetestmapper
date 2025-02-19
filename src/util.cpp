@@ -1,11 +1,15 @@
 #include <stdexcept>
 #include <sstream>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "util.h"
 
 static std::string trim(const std::string &s)
 {
-	auto isspace = [] (char c) -> bool { return c == ' ' || c == '\t' || c == '\r' || c == '\n'; };
+	auto isspace = [] (char c) {
+		return c == ' ' || c == '\t' || c == '\r' || c == '\n';
+	};
 
 	size_t front = 0;
 	while (isspace(s[front]))
@@ -20,6 +24,7 @@ static std::string trim(const std::string &s)
 std::string read_setting(const std::string &name, std::istream &is)
 {
 	char linebuf[512];
+	is.seekg(0);
 	while (is.good()) {
 		is.getline(linebuf, sizeof(linebuf));
 
@@ -52,4 +57,17 @@ std::string read_setting_default(const std::string &name, std::istream &is,
 	} catch(const std::runtime_error &e) {
 		return def;
 	}
+}
+
+bool file_exists(const char *path)
+{
+	struct stat s{};
+	// check for !dir to allow symlinks or such
+	return stat(path, &s) == 0 && (s.st_mode & S_IFDIR) != S_IFDIR;
+}
+
+bool dir_exists(const char *path)
+{
+	struct stat s{};
+	return stat(path, &s) == 0 && (s.st_mode & S_IFDIR) == S_IFDIR;
 }

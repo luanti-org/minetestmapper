@@ -372,35 +372,51 @@ std::set<std::string> TileGenerator::getSupportedBackends()
 
 void TileGenerator::openDb(const std::string &input_path)
 {
+	if (dir_exists(input_path.c_str())) {
+		// ok
+	} else if (file_exists(input_path.c_str())) {
+		throw std::runtime_error("Input path is a file, it should point to the world folder instead");
+	} else {
+		throw std::runtime_error("Input path does not exist");
+	}
+
 	std::string input = input_path;
 	if (input.back() != PATH_SEPARATOR)
 		input += PATH_SEPARATOR;
 
+	std::ifstream ifs(input + "world.mt");
+
 	std::string backend = m_backend;
-	if (backend.empty()) {
-		std::ifstream ifs(input + "world.mt");
-		if(!ifs.good())
-			throw std::runtime_error("Failed to open world.mt");
+	if (backend.empty() && !ifs.good()) {
+		throw std::runtime_error("Failed to open world.mt");
+	} else if (backend.empty()) {
 		backend = read_setting_default("backend", ifs, "sqlite3");
-		ifs.close();
 	}
 
-	if (backend == "sqlite3")
+	if (backend == "dummy") {
+		throw std::runtime_error("This map uses the dummy backend and contains no data");
+	} else if (backend == "sqlite3") {
 		m_db = new DBSQLite3(input);
 #if USE_POSTGRESQL
-	else if (backend == "postgresql")
+	} else if (backend == "postgresql") {
 		m_db = new DBPostgreSQL(input);
 #endif
 #if USE_LEVELDB
-	else if (backend == "leveldb")
+	} else if (backend == "leveldb") {
 		m_db = new DBLevelDB(input);
 #endif
 #if USE_REDIS
-	else if (backend == "redis")
+	} else if (backend == "redis") {
 		m_db = new DBRedis(input);
 #endif
-	else
+	} else {
 		throw std::runtime_error(std::string("Unknown map backend: ") + backend);
+	}
+
+	if (!read_setting_default("readonly_backend", ifs, "").empty()) {
+		std::cerr << "Warning: Map with readonly_backend is not supported. "
+			"The result may be incomplete." << std::endl;
+	}
 
 	// Determine how we're going to traverse the database (heuristic)
 	if (m_exhaustiveSearch == EXH_AUTO) {

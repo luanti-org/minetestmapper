@@ -19,3 +19,7 @@ std::string read_setting(const std::string &name, std::istream &is);
 
 std::string read_setting_default(const std::string &name, std::istream &is,
 	const std::string &def);
+
+bool file_exists(const char *path);
+
+bool dir_exists(const char *path);

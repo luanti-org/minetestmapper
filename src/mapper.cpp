@@ -15,7 +15,7 @@ static void usage()
 {
 	const std::pair<const char*, const char*> options[] = {
 		{"-i/--input", "<world_path>"},
-		{"-o/--output", "<output_image.png>"},
+		{"-o/--output", "<output_image>"},
 		{"--bgcolor", "<color>"},
 		{"--scalecolor", "<color>"},
 		{"--playercolor", "<color>"},
@@ -38,7 +38,7 @@ static void usage()
 		{"--dumpblock", "x,y,z"},
 	};
 	const char *top_text =
-		"minetestmapper -i <world_path> -o <output_image.png> [options]\n"
+		"minetestmapper -i <world_path> -o <output_image> [options]\n"
 		"Generate an overview image of a Luanti map.\n"
 		"\n"
 		"Options:\n";
