@@ -1,5 +1,5 @@
 #include <stdexcept>
-#include <sstream>
+#include <iostream>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -21,42 +21,45 @@ static std::string trim(const std::string &s)
 	return s.substr(front, back - front + 1);
 }
 
-std::string read_setting(const std::string &name, std::istream &is)
+static bool read_setting(const std::string &name, std::istream &is, std::string &out)
 {
 	char linebuf[512];
 	is.seekg(0);
 	while (is.good()) {
 		is.getline(linebuf, sizeof(linebuf));
-
-		for (char *p = linebuf; *p; p++) {
-			if(*p != '#')
-				continue;
-			*p = '\0'; // Cut off at the first #
-			break;
-		}
 		std::string line(linebuf);
 
-		auto pos = line.find('=');
+		auto pos = line.find('#');
+		if (pos != std::string::npos)
+			line.erase(pos); // remove comments
+
+		pos = line.find('=');
 		if (pos == std::string::npos)
 			continue;
 		auto key = trim(line.substr(0, pos));
 		if (key != name)
 			continue;
-		return trim(line.substr(pos+1));
+		out = trim(line.substr(pos+1));
+		return true;
 	}
-	std::ostringstream oss;
-	oss << "Setting '" << name << "' not found";
-	throw std::runtime_error(oss.str());
+	return false;
+}
+
+std::string read_setting(const std::string &name, std::istream &is)
+{
+	std::string ret;
+	if (!read_setting(name, is, ret))
+		throw std::runtime_error(std::string("Setting not found: ") + name);
+	return ret;
 }
 
 std::string read_setting_default(const std::string &name, std::istream &is,
 	const std::string &def)
 {
-	try {
-		return read_setting(name, is);
-	} catch(const std::runtime_error &e) {
+	std::string ret;
+	if (!read_setting(name, is, ret))
 		return def;
-	}
+	return ret;
 }
 
 bool file_exists(const char *path)

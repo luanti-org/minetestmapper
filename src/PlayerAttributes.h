@@ -19,8 +19,5 @@ public:
 	Players::const_iterator end() const;
 
 private:
-	void readFiles(const std::string &playersPath);
-	void readSqlite(const std::string &db_name);
-
 	Players m_players;
 };

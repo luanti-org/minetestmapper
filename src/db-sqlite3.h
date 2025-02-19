@@ -24,6 +24,14 @@ protected:
 		return sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
 	}
 
+	// read string from statement
+	static inline std::string read_str(sqlite3_stmt *stmt, int iCol)
+	{
+		auto *data = reinterpret_cast<const char*>(
+			sqlite3_column_text(stmt, iCol));
+		return std::string(data);
+	}
+
 	// read blob from statement
 	static inline ustring read_blob(sqlite3_stmt *stmt, int iCol)
 	{
