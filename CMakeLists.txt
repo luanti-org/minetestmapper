@@ -150,7 +150,6 @@ configure_file(
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/cmake_config.h.in"
 	"${CMAKE_CURRENT_BINARY_DIR}/cmake_config.h"
 )
-add_definitions(-DUSE_CMAKE_CONFIG_H)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O2")
