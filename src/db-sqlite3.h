@@ -47,7 +47,7 @@ protected:
 class DBSQLite3 : public DB, SQLite3Base {
 public:
 	DBSQLite3(const std::string &mapdir);
-	std::vector<BlockPos> getBlockPos(BlockPos min, BlockPos max) override;
+	std::vector<BlockPos> getBlockPosXZ(BlockPos min, BlockPos max) override;
 	void getBlocksOnXZ(BlockList &blocks, int16_t x, int16_t z,
 			int16_t min_y, int16_t max_y) override;
 	void getBlocksByPos(BlockList &blocks,

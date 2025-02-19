@@ -464,26 +464,20 @@ void TileGenerator::loadBlocks()
 	const int16_t yMin = mod16(m_yMin);
 
 	if (m_exhaustiveSearch == EXH_NEVER || m_exhaustiveSearch == EXH_Y) {
-		std::vector<BlockPos> vec = m_db->getBlockPos(
+		std::vector<BlockPos> vec = m_db->getBlockPosXZ(
 			BlockPos(m_geomX, yMin, m_geomY),
 			BlockPos(m_geomX2, yMax, m_geomY2)
 		);
 
 		for (auto pos : vec) {
 			assert(pos.x >= m_geomX && pos.x < m_geomX2);
-			assert(pos.y >= yMin && pos.y < yMax);
 			assert(pos.z >= m_geomY && pos.z < m_geomY2);
 
 			// Adjust minimum and maximum positions to the nearest block
-			if (pos.x < m_xMin)
-				m_xMin = pos.x;
-			if (pos.x > m_xMax)
-				m_xMax = pos.x;
-
-			if (pos.z < m_zMin)
-				m_zMin = pos.z;
-			if (pos.z > m_zMax)
-				m_zMax = pos.z;
+			m_xMin = mymin<int>(m_xMin, pos.x);
+			m_xMax = mymax<int>(m_xMax, pos.x);
+			m_zMin = mymin<int>(m_zMin, pos.z);
+			m_zMax = mymax<int>(m_zMax, pos.z);
 
 			m_positions[pos.z].emplace(pos.x);
 		}

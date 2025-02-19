@@ -6,7 +6,7 @@
 class DBPostgreSQL : public DB {
 public:
 	DBPostgreSQL(const std::string &mapdir);
-	std::vector<BlockPos> getBlockPos(BlockPos min, BlockPos max) override;
+	std::vector<BlockPos> getBlockPosXZ(BlockPos min, BlockPos max) override;
 	void getBlocksOnXZ(BlockList &blocks, int16_t x, int16_t z,
 		int16_t min_y, int16_t max_y) override;
 	void getBlocksByPos(BlockList &blocks,
@@ -25,7 +25,6 @@ protected:
 		bool clear = true
 	);
 	int pg_binary_to_int(PGresult *res, int row, int col);
-	BlockPos pg_to_blockpos(PGresult *res, int row, int col);
 
 private:
 	PGconn *db;

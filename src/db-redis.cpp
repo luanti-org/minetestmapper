@@ -68,7 +68,7 @@ DBRedis::~DBRedis()
 }
 
 
-std::vector<BlockPos> DBRedis::getBlockPos(BlockPos min, BlockPos max)
+std::vector<BlockPos> DBRedis::getBlockPosXZ(BlockPos min, BlockPos max)
 {
 	std::vector<BlockPos> res;
 	for (const auto &it : posCache) {

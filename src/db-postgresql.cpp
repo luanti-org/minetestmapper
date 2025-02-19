@@ -27,10 +27,10 @@ DBPostgreSQL::DBPostgreSQL(const std::string &mapdir)
 
 	prepareStatement(
 		"get_block_pos",
-		"SELECT posX::int4, posY::int4, posZ::int4 FROM blocks WHERE"
+		"SELECT posX::int4, posZ::int4 FROM blocks WHERE"
 		" (posX BETWEEN $1::int4 AND $2::int4) AND"
 		" (posY BETWEEN $3::int4 AND $4::int4) AND"
-		" (posZ BETWEEN $5::int4 AND $6::int4)"
+		" (posZ BETWEEN $5::int4 AND $6::int4) GROUP BY posX, posZ"
 	);
 	prepareStatement(
 		"get_blocks",
@@ -60,7 +60,7 @@ DBPostgreSQL::~DBPostgreSQL()
 }
 
 
-std::vector<BlockPos> DBPostgreSQL::getBlockPos(BlockPos min, BlockPos max)
+std::vector<BlockPos> DBPostgreSQL::getBlockPosXZ(BlockPos min, BlockPos max)
 {
 	int32_t const x1 = htonl(min.x);
 	int32_t const x2 = htonl(max.x - 1);
@@ -83,11 +83,14 @@ std::vector<BlockPos> DBPostgreSQL::getBlockPos(BlockPos min, BlockPos max)
 	std::vector<BlockPos> positions;
 	positions.reserve(numrows);
 
-	for (int row = 0; row < numrows; ++row)
-		positions.emplace_back(pg_to_blockpos(results, row, 0));
+	BlockPos pos;
+	for (int row = 0; row < numrows; ++row) {
+		pos.x = pg_binary_to_int(results, row, 0);
+		pos.z = pg_binary_to_int(results, row, 1);
+		positions.push_back(pos);
+	}
 
 	PQclear(results);
-
 	return positions;
 }
 
@@ -214,13 +217,4 @@ int DBPostgreSQL::pg_binary_to_int(PGresult *res, int row, int col)
 {
 	int32_t* raw = reinterpret_cast<int32_t*>(PQgetvalue(res, row, col));
 	return ntohl(*raw);
-}
-
-BlockPos DBPostgreSQL::pg_to_blockpos(PGresult *res, int row, int col)
-{
-	BlockPos result;
-	result.x = pg_binary_to_int(res, row, col);
-	result.y = pg_binary_to_int(res, row, col + 1);
-	result.z = pg_binary_to_int(res, row, col + 2);
-	return result;
 }
