@@ -39,6 +39,10 @@ jobs:
         run: |
           ./util/ci/test.sh
 
+      - name: Test Install
+        run: |
+          make DESTDIR=/tmp/install install
+
   clang:
     runs-on: ubuntu-22.04
     steps:
