@@ -6,13 +6,36 @@
 #include "db-sqlite3.h"
 #include "types.h"
 
-#define SQLRES(r, good) do { \
-	auto _result = (r); \
-	if (_result != good) \
-		throw std::runtime_error(sqlite3_errmsg(db)); \
-	} while (0)
+/* SQLite3Base */
 
+#define SQLRES(r, good) check_result(r, good)
 #define SQLOK(r) SQLRES(r, SQLITE_OK)
+
+SQLite3Base::~SQLite3Base()
+{
+	if (db && sqlite3_close(db) != SQLITE_OK) {
+		std::cerr << "Error closing SQLite database: "
+			<< sqlite3_errmsg(db) << std::endl;
+	}
+}
+
+void SQLite3Base::openDatabase(const char *path, bool readonly)
+{
+	if (db)
+		throw std::logic_error("Database already open");
+
+	int flags = 0;
+	if (readonly)
+		flags |= SQLITE_OPEN_READONLY | SQLITE_OPEN_PRIVATECACHE;
+	else
+		flags |= SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
+#ifdef SQLITE_OPEN_EXRESCODE
+	flags |= SQLITE_OPEN_EXRESCODE;
+#endif
+	SQLOK(sqlite3_open_v2(path, &db, flags, 0));
+}
+
+/* DBSQLite3 */
 
 // make sure a row is available. intended to be used outside a loop.
 // compare result to SQLITE_ROW afterwards.
@@ -36,54 +59,41 @@ DBSQLite3::DBSQLite3(const std::string &mapdir)
 {
 	std::string db_name = mapdir + "map.sqlite";
 
-	auto flags = SQLITE_OPEN_READONLY |
-		SQLITE_OPEN_PRIVATECACHE;
-#ifdef SQLITE_OPEN_EXRESCODE
-	flags |= SQLITE_OPEN_EXRESCODE;
-#endif
-	SQLOK(sqlite3_open_v2(db_name.c_str(), &db, flags, 0));
+	openDatabase(db_name.c_str());
 
 	// There's a simple, dumb way to check if we have a new or old database schema.
 	// If we prepare a statement that references columns that don't exist, it will
 	// error right there.
-	int result = sqlite3_prepare_v2(db, "SELECT x, y, z FROM blocks", -1,
-		&stmt_get_block_pos, NULL);
+	int result = prepare(stmt_get_block_pos, "SELECT x, y, z FROM blocks");
 	newFormat = result == SQLITE_OK;
 #ifndef NDEBUG
 	std::cerr << "Detected " << (newFormat ? "new" : "old") << " SQLite schema" << std::endl;
 #endif
 
 	if (newFormat) {
-		SQLOK(sqlite3_prepare_v2(db,
+		SQLOK(prepare(stmt_get_blocks_xz_range,
 				"SELECT y, data FROM blocks WHERE "
-				"x = ? AND z = ? AND y BETWEEN ? AND ?",
-			-1, &stmt_get_blocks_xz_range, NULL));
+				"x = ? AND z = ? AND y BETWEEN ? AND ?"));
 
-		SQLOK(sqlite3_prepare_v2(db,
-				"SELECT data FROM blocks WHERE x = ? AND y = ? AND z = ?",
-			-1, &stmt_get_block_exact, NULL));
+		SQLOK(prepare(stmt_get_block_exact,
+				"SELECT data FROM blocks WHERE x = ? AND y = ? AND z = ?"));
 
-		SQLOK(sqlite3_prepare_v2(db,
+		SQLOK(prepare(stmt_get_block_pos_range,
 				"SELECT x, y, z FROM blocks WHERE "
 				"x >= ? AND y >= ? AND z >= ? AND "
-				"x < ? AND y < ? AND z < ?",
-			-1, &stmt_get_block_pos_range, NULL));
+				"x < ? AND y < ? AND z < ?"));
 	} else {
-		SQLOK(sqlite3_prepare_v2(db,
-				"SELECT pos, data FROM blocks WHERE pos BETWEEN ? AND ?",
-			-1, &stmt_get_blocks_z, NULL));
+		SQLOK(prepare(stmt_get_blocks_z,
+				"SELECT pos, data FROM blocks WHERE pos BETWEEN ? AND ?"));
 
-		SQLOK(sqlite3_prepare_v2(db,
-				"SELECT data FROM blocks WHERE pos = ?",
-			-1, &stmt_get_block_exact, NULL));
+		SQLOK(prepare(stmt_get_block_exact,
+				"SELECT data FROM blocks WHERE pos = ?"));
 
-		SQLOK(sqlite3_prepare_v2(db,
-				"SELECT pos FROM blocks",
-			-1, &stmt_get_block_pos, NULL));
+		SQLOK(prepare(stmt_get_block_pos,
+				"SELECT pos FROM blocks"));
 
-		SQLOK(sqlite3_prepare_v2(db,
-				"SELECT pos FROM blocks WHERE pos BETWEEN ? AND ?",
-			-1, &stmt_get_block_pos_range, NULL));
+		SQLOK(prepare(stmt_get_block_pos_range,
+				"SELECT pos FROM blocks WHERE pos BETWEEN ? AND ?"));
 	}
 
 #undef RANGE
@@ -97,11 +107,6 @@ DBSQLite3::~DBSQLite3()
 	sqlite3_finalize(stmt_get_block_pos);
 	sqlite3_finalize(stmt_get_block_pos_range);
 	sqlite3_finalize(stmt_get_block_exact);
-
-	if (sqlite3_close(db) != SQLITE_OK) {
-		std::cerr << "Error closing SQLite database: "
-			<< sqlite3_errmsg(db) << std::endl;
-	};
 }
 
 

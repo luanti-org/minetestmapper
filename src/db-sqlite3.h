@@ -4,7 +4,39 @@
 #include <unordered_map>
 #include <sqlite3.h>
 
-class DBSQLite3 : public DB {
+class SQLite3Base {
+public:
+	~SQLite3Base();
+
+protected:
+	void openDatabase(const char *path, bool readonly = true);
+
+	// check function result or throw error
+	inline void check_result(int result, int good = SQLITE_OK)
+	{
+		if (result != good)
+			throw std::runtime_error(sqlite3_errmsg(db));
+	}
+
+	// prepare a statement
+	inline int prepare(sqlite3_stmt *&stmt, const char *sql)
+	{
+		return sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+	}
+
+	// read blob from statement
+	static inline ustring read_blob(sqlite3_stmt *stmt, int iCol)
+	{
+		auto *data = reinterpret_cast<const unsigned char *>(
+			sqlite3_column_blob(stmt, iCol));
+		size_t size = sqlite3_column_bytes(stmt, iCol);
+		return ustring(data, size);
+	}
+
+	sqlite3 *db = NULL;
+};
+
+class DBSQLite3 : public DB, SQLite3Base {
 public:
 	DBSQLite3(const std::string &mapdir);
 	std::vector<BlockPos> getBlockPos(BlockPos min, BlockPos max) override;
@@ -34,17 +66,6 @@ private:
 			return iCol + 1;
 		}
 	}
-
-	// read blob from statement
-	static inline ustring read_blob(sqlite3_stmt *stmt, int iCol)
-	{
-		auto *data = reinterpret_cast<const unsigned char *>(
-			sqlite3_column_blob(stmt, iCol));
-		size_t size = sqlite3_column_bytes(stmt, iCol);
-		return ustring(data, size);
-	}
-
-	sqlite3 *db = NULL;
 
 	sqlite3_stmt *stmt_get_block_pos = NULL;
 	sqlite3_stmt *stmt_get_block_pos_range = NULL;
