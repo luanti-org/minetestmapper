@@ -1,5 +1,6 @@
 #!/bin/bash
 set -eo pipefail
+mapdir=./testmap
 
 msg () {
 	echo
@@ -14,15 +15,15 @@ encodepos () {
 
 # create map file with sql statements
 writemap () {
-	mkdir -p testmap
-	echo "backend = sqlite3" >testmap/world.mt
-	echo "default:stone 255 0 0" >testmap/colors.txt
-	rm -f testmap/map.sqlite
+	rm -rf $mapdir
+	mkdir $mapdir
+	echo "backend = sqlite3" >$mapdir/world.mt
+	echo "default:stone 10 10 10" >$mapdir/colors.txt
 	printf '%s\n' \
 		"CREATE TABLE d(d BLOB);" \
 		"INSERT INTO d VALUES (x'$(cat util/ci/test_block)');" \
 		"$1" \
-		"DROP TABLE d;" | sqlite3 testmap/map.sqlite
+		"DROP TABLE d;" | sqlite3 $mapdir/map.sqlite
 }
 
 # check that a non-empty ($1=1) or empty map ($1=0) was written with the args ($2 ...)
@@ -98,3 +99,13 @@ checkmap 1 --geometry 32:32+16+16 --min-y 32 --max-y $((32+16-1))
 msg "new schema: empty map"
 writemap "$schema_new"
 checkmap 0
+
+msg "drawplayers"
+writemap "
+$schema_new
+INSERT INTO blocks SELECT 0, 0, 0, d FROM d;
+"
+mkdir $mapdir/players
+printf '%s\n' "name = cat" "position = (80,0,80)" >$mapdir/players/cat
+# we can't check that it actually worked, however
+checkmap 1 --drawplayers --zoom 4
