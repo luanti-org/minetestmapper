@@ -79,9 +79,9 @@ DBSQLite3::DBSQLite3(const std::string &mapdir)
 				"SELECT data FROM blocks WHERE x = ? AND y = ? AND z = ?"));
 
 		SQLOK(prepare(stmt_get_block_pos_range,
-				"SELECT x, y, z FROM blocks WHERE "
+				"SELECT x, z FROM blocks WHERE "
 				"x >= ? AND y >= ? AND z >= ? AND "
-				"x < ? AND y < ? AND z < ?"));
+				"x < ? AND y < ? AND z < ? GROUP BY x, z"));
 	} else {
 		SQLOK(prepare(stmt_get_blocks_z,
 				"SELECT pos, data FROM blocks WHERE pos BETWEEN ? AND ?"));
@@ -119,7 +119,7 @@ inline void DBSQLite3::getPosRange(int64_t &min, int64_t &max,
 }
 
 
-std::vector<BlockPos> DBSQLite3::getBlockPos(BlockPos min, BlockPos max)
+std::vector<BlockPos> DBSQLite3::getBlockPosXZ(BlockPos min, BlockPos max)
 {
 	int result;
 	sqlite3_stmt *stmt;
@@ -152,12 +152,13 @@ std::vector<BlockPos> DBSQLite3::getBlockPos(BlockPos min, BlockPos max)
 
 		if (newFormat) {
 			pos.x = sqlite3_column_int(stmt, 0);
-			pos.y = sqlite3_column_int(stmt, 1);
-			pos.z = sqlite3_column_int(stmt, 2);
+			pos.z = sqlite3_column_int(stmt, 1);
 		} else {
 			pos = decodeBlockPos(sqlite3_column_int64(stmt, 0));
 			if (pos.x < min.x || pos.x >= max.x || pos.y < min.y || pos.y >= max.y)
 				continue;
+			// note that we can't try to deduplicate these because the order
+			// of the encoded pos (if sorted) is ZYX.
 		}
 		positions.emplace_back(pos);
 	}
