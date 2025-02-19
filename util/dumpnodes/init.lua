@@ -2,8 +2,19 @@ local function get_tile(tiles, n)
 	local tile = tiles[n]
 	if type(tile) == 'table' then
 		return tile.name or tile.image
+	elseif type(tile) == 'string' then
+		return tile
 	end
-	return tile
+end
+
+local function strip_texture(tex)
+	tex = (tex .. '^'):match('%(*(.-)%)*^') -- strip modifiers
+	if tex:find("[combine", 1, true) then
+		tex = tex:match('.-=([^:]-)') -- extract first texture
+	elseif tex:find("[png", 1, true) then
+		return nil -- can't
+	end
+	return tex
 end
 
 local function pairs_s(dict)
@@ -20,7 +31,7 @@ core.register_chatcommand("dumpnodes", {
 	func = function()
 		local ntbl = {}
 		for _, nn in pairs_s(minetest.registered_nodes) do
-			local prefix, name = nn:match('(.*):(.*)')
+			local prefix, name = nn:match('(.-):(.*)')
 			if prefix == nil or name == nil then
 				print("ignored(1): " .. nn)
 			else
@@ -45,12 +56,13 @@ core.register_chatcommand("dumpnodes", {
 					print("ignored(2): " .. nn)
 				else
 					local tex = get_tile(tiles, 1)
-					tex = (tex .. '^'):match('%(*(.-)%)*^') -- strip modifiers
-					if tex:find("[combine", 1, true) then
-						tex = tex:match('.-=([^:]-)') -- extract first texture
+					tex = tex and strip_texture(tex)
+					if not tex then
+						print("ignored(3): " .. nn)
+					else
+						out:write(nn .. ' ' .. tex .. '\n')
+						n = n + 1
 					end
-					out:write(nn .. ' ' .. tex .. '\n')
-					n = n + 1
 				end
 			end
 			out:write('\n')
