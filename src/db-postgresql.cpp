@@ -9,6 +9,66 @@
 
 #define ARRLEN(x) (sizeof(x) / sizeof((x)[0]))
 
+/* PostgreSQLBase */
+
+PostgreSQLBase::~PostgreSQLBase()
+{
+	if (db)
+		PQfinish(db);
+}
+
+void PostgreSQLBase::openDatabase(const char *connect_string)
+{
+	if (db)
+		throw std::logic_error("Database already open");
+
+	db = PQconnectdb(connect_string);
+	if (PQstatus(db) != CONNECTION_OK) {
+		throw std::runtime_error(std::string("PostgreSQL database error: ") +
+			PQerrorMessage(db)
+		);
+	}
+}
+
+PGresult *PostgreSQLBase::checkResults(PGresult *res, bool clear)
+{
+	ExecStatusType statusType = PQresultStatus(res);
+
+	switch (statusType) {
+	case PGRES_COMMAND_OK:
+	case PGRES_TUPLES_OK:
+		break;
+	case PGRES_FATAL_ERROR:
+		throw std::runtime_error(
+			std::string("PostgreSQL database error: ") +
+			PQresultErrorMessage(res)
+		);
+	default:
+		throw std::runtime_error(
+			std::string("Unhandled PostgreSQL result code ") +
+			std::to_string(statusType)
+		);
+	}
+
+	if (clear)
+		PQclear(res);
+	return res;
+}
+
+PGresult *PostgreSQLBase::execPrepared(
+	const char *stmtName, const int paramsNumber,
+	const void **params,
+	const int *paramsLengths, const int *paramsFormats,
+	bool clear)
+{
+	return checkResults(PQexecPrepared(db, stmtName, paramsNumber,
+		(const char* const*) params, paramsLengths, paramsFormats,
+		1 /* binary output */), clear
+	);
+}
+
+/* DBPostgreSQL */
+
 DBPostgreSQL::DBPostgreSQL(const std::string &mapdir)
 {
 	std::ifstream ifs(mapdir + "world.mt");
@@ -16,14 +76,8 @@ DBPostgreSQL::DBPostgreSQL(const std::string &mapdir)
 		throw std::runtime_error("Failed to read world.mt");
 	std::string connect_string = read_setting("pgsql_connection", ifs);
 	ifs.close();
-	db = PQconnectdb(connect_string.c_str());
 
-	if (PQstatus(db) != CONNECTION_OK) {
-		throw std::runtime_error(std::string(
-			"PostgreSQL database error: ") +
-			PQerrorMessage(db)
-		);
-	}
+	openDatabase(connect_string.c_str());
 
 	prepareStatement(
 		"get_block_pos",
@@ -56,7 +110,6 @@ DBPostgreSQL::~DBPostgreSQL()
 	} catch (const std::exception& caught) {
 		std::cerr << "could not finalize: " << caught.what() << std::endl;
 	}
-	PQfinish(db);
 }
 
 
@@ -167,50 +220,6 @@ void DBPostgreSQL::getBlocksByPos(BlockList &blocks,
 
 		PQclear(results);
 	}
-}
-
-
-PGresult *DBPostgreSQL::checkResults(PGresult *res, bool clear)
-{
-	ExecStatusType statusType = PQresultStatus(res);
-
-	switch (statusType) {
-	case PGRES_COMMAND_OK:
-	case PGRES_TUPLES_OK:
-		break;
-	case PGRES_FATAL_ERROR:
-		throw std::runtime_error(
-			std::string("PostgreSQL database error: ") +
-			PQresultErrorMessage(res)
-		);
-	default:
-		throw std::runtime_error(
-			"Unhandled PostgreSQL result code"
-		);
-	}
-
-	if (clear)
-		PQclear(res);
-
-	return res;
-}
-
-void DBPostgreSQL::prepareStatement(const std::string &name, const std::string &sql)
-{
-	checkResults(PQprepare(db, name.c_str(), sql.c_str(), 0, NULL));
-}
-
-PGresult *DBPostgreSQL::execPrepared(
-	const char *stmtName, const int paramsNumber,
-	const void **params,
-	const int *paramsLengths, const int *paramsFormats,
-	bool clear
-)
-{
-	return checkResults(PQexecPrepared(db, stmtName, paramsNumber,
-		(const char* const*) params, paramsLengths, paramsFormats,
-		1 /* binary output */), clear
-	);
 }
 
 int DBPostgreSQL::pg_binary_to_int(PGresult *res, int row, int col)
