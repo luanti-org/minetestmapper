@@ -23,6 +23,7 @@ private:
 	u8 m_version, m_contentWidth;
 	ustring m_mapData;
 
-	// one instance for performance
+	// cached allocations/instances for performance
 	ZstdDecompressor m_zstd_decompressor;
+	ustring m_scratch;
 };

@@ -28,18 +28,13 @@ void ZlibDecompressor::setSeekPos(size_t seekPos)
 	m_seekPos = seekPos;
 }
 
-size_t ZlibDecompressor::seekPos() const
-{
-	return m_seekPos;
-}
-
-ustring ZlibDecompressor::decompress()
+void ZlibDecompressor::decompress(ustring &buffer)
 {
 	const unsigned char *data = m_data + m_seekPos;
 	const size_t size = m_size - m_seekPos;
 
-	ustring buffer;
-	constexpr size_t BUFSIZE = 32 * 1024;
+	// output space is extended in chunks of this size
+	constexpr size_t BUFSIZE = 8 * 1024;
 
 	z_stream strm;
 	strm.zalloc = Z_NULL;
@@ -73,7 +68,5 @@ ustring ZlibDecompressor::decompress()
 	m_seekPos += strm.next_in - data;
 	buffer.resize(buffer.size() - strm.avail_out);
 	(void) Z(inflateEnd)(&strm);
-
-	return buffer;
 }
 

@@ -56,13 +56,12 @@ void BlockDecoder::decode(const ustring &datastr)
 	}
 	m_version = version;
 
-	ustring datastr2;
 	if (version >= 29) {
 		// decompress whole block at once
 		m_zstd_decompressor.setData(data, length, 1);
-		datastr2 = m_zstd_decompressor.decompress();
-		data = datastr2.c_str();
-		length = datastr2.size();
+		m_zstd_decompressor.decompress(m_scratch);
+		data = m_scratch.c_str();
+		length = m_scratch.size();
 	}
 
 	size_t dataOffset = 0;
@@ -115,8 +114,8 @@ void BlockDecoder::decode(const ustring &datastr)
 	// version < 29
 	ZlibDecompressor decompressor(data, length);
 	decompressor.setSeekPos(dataOffset);
-	m_mapData = decompressor.decompress();
-	decompressor.decompress(); // unused metadata
+	decompressor.decompress(m_mapData);
+	decompressor.decompress(m_scratch); // unused metadata
 	dataOffset = decompressor.seekPos();
 
 	// Skip unused node timers

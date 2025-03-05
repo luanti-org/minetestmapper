@@ -11,8 +11,10 @@ public:
 	ZstdDecompressor();
 	~ZstdDecompressor();
 	void setData(const u8 *data, size_t size, size_t seekPos);
-	size_t seekPos() const;
-	ustring decompress();
+	size_t seekPos() const { return m_seekPos; }
+	// Decompress and return one zstd stream from the buffer
+	// Advances seekPos as appropriate.
+	void decompress(ustring &dst);
 
 private:
 	void *m_stream; // ZSTD_DStream
