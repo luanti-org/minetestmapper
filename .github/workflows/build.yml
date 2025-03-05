@@ -1,6 +1,6 @@
 name: build
 
-# build on c/cpp changes or workflow changes
+# build on source or workflow changes
 on:
   push:
     paths:
@@ -59,6 +59,26 @@ jobs:
         env:
           CC: clang
           CXX: clang++
+
+      - name: Test
+        run: |
+          ./util/ci/test.sh
+
+  gcc_fedora:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install deps
+        run: |
+          source util/ci/script.sh
+          install_linux_deps
+
+      - name: Build
+        run: |
+          source util/ci/script.sh
+          run_build
 
       - name: Test
         run: |
