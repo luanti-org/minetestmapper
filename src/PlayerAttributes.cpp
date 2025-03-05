@@ -83,7 +83,8 @@ void FilesReader::read(PlayerAttributes::Players &dest)
 		Player player;
 		player.name = name;
 		if (!parse_pos(position, player)) {
-			errorstream << "Failed to parse position '" << position << "'" << std::endl;
+			errorstream << "Failed to parse position '" << position << "' in "
+				<< ent->d_name << std::endl;
 			continue;
 		}
 
@@ -135,6 +136,7 @@ PlayerAttributes::PlayerAttributes(const std::string &worldDir)
 	std::string backend = read_setting_default("player_backend", ifs, "files");
 	ifs.close();
 
+	verbosestream << "Player backend is " << backend << std::endl;
 	if (backend == "files")
 		FilesReader(worldDir + "players").read(m_players);
 	else if (backend == "sqlite3")

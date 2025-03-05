@@ -107,8 +107,8 @@ void BlockDecoder::decode(const ustring &datastr)
 	m_contentWidth = contentWidth;
 
 	if (version >= 29) {
-		m_mapData.resize((contentWidth + paramsWidth) * 4096);
-		m_mapData.assign(data + dataOffset, m_mapData.size());
+		size_t mapDataSize = (contentWidth + paramsWidth) * 4096;
+		m_mapData.assign(data + dataOffset, mapDataSize);
 		return; // we have read everything we need and can return early
 	}
 

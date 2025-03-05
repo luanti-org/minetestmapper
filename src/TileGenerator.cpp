@@ -105,8 +105,8 @@ static Color parseColor(const std::string &color)
 static Color mixColors(Color a, Color b)
 {
 	Color result;
-	double a1 = a.a / 255.0;
-	double a2 = b.a / 255.0;
+	float a1 = a.a / 255.0f;
+	float a2 = b.a / 255.0f;
 
 	result.r = (int) (a1 * a.r + a2 * (1 - a1) * b.r);
 	result.g = (int) (a1 * a.g + a2 * (1 - a1) * b.g);
@@ -303,6 +303,7 @@ void TileGenerator::generate(const std::string &input_path, const std::string &o
 	// result will be empty.
 	if (m_dontWriteEmpty && (m_exhaustiveSearch == EXH_NEVER ||
 		m_exhaustiveSearch == EXH_Y) && m_positions.empty()) {
+		verbosestream << "Result is empty (no positions)" << std::endl;
 		return;
 	}
 
@@ -310,6 +311,7 @@ void TileGenerator::generate(const std::string &input_path, const std::string &o
 	renderMap();
 
 	if (m_dontWriteEmpty && !m_renderedAny) {
+		verbosestream << "Result is empty (no pixels)" << std::endl;
 		printUnknown();
 		return;
 	}
