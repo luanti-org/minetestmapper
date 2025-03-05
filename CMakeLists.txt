@@ -57,7 +57,16 @@ endif(NOT LIBGD_LIBRARY OR NOT LIBGD_INCLUDE_DIR)
 
 # Libraries: zlib
 
-find_package(ZLIB REQUIRED)
+find_package(zlib-ng QUIET)
+if(zlib-ng_FOUND)
+	set(ZLIB_INCLUDE_DIR zlib-ng::zlib)
+	set(ZLIB_LIBRARY zlib-ng::zlib)
+	set(USE_ZLIB_NG TRUE)
+	message(STATUS "Found zlib-ng, using it instead of zlib.")
+else()
+	find_package(ZLIB REQUIRED)
+	set(USE_ZLIB_NG FALSE)
+endif()
 
 # Libraries: zstd
 

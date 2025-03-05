@@ -6,6 +6,7 @@
 #cmakedefine01 USE_POSTGRESQL
 #cmakedefine01 USE_LEVELDB
 #cmakedefine01 USE_REDIS
+#cmakedefine01 USE_ZLIB_NG
 
 #define SHAREDIR "@SHAREDIR@"
 

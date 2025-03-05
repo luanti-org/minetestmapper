@@ -1,6 +1,16 @@
-#include <zlib.h>
-#include <stdint.h>
+#include <cstdint>
 #include "ZlibDecompressor.h"
+#include "config.h"
+
+// for convenient usage of both
+#if USE_ZLIB_NG
+#include <zlib-ng.h>
+#define z_stream zng_stream
+#define Z(x) zng_ ## x
+#else
+#include <zlib.h>
+#define Z(x) x
+#endif
 
 ZlibDecompressor::ZlibDecompressor(const u8 *data, size_t size):
 	m_data(data),
@@ -38,7 +48,7 @@ ustring ZlibDecompressor::decompress()
 	strm.next_in = Z_NULL;
 	strm.avail_in = 0;
 
-	if (inflateInit(&strm) != Z_OK)
+	if (Z(inflateInit)(&strm) != Z_OK)
 		throw DecompressError();
 
 	strm.next_in = const_cast<unsigned char *>(data);
@@ -49,7 +59,7 @@ ustring ZlibDecompressor::decompress()
 
 	int ret = 0;
 	do {
-		ret = inflate(&strm, Z_NO_FLUSH);
+		ret = Z(inflate)(&strm, Z_NO_FLUSH);
 		if (strm.avail_out == 0) {
 			const auto off = buffer.size();
 			buffer.reserve(off + BUFSIZE);
@@ -62,7 +72,7 @@ ustring ZlibDecompressor::decompress()
 
 	m_seekPos += strm.next_in - data;
 	buffer.resize(buffer.size() - strm.avail_out);
-	(void) inflateEnd(&strm);
+	(void) Z(inflateEnd)(&strm);
 
 	return buffer;
 }
