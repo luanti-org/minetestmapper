@@ -17,6 +17,7 @@
 #include "BlockDecoder.h"
 #include "Image.h"
 #include "util.h"
+#include "log.h"
 
 #include "db-sqlite3.h"
 #if USE_POSTGRESQL
@@ -346,7 +347,7 @@ void TileGenerator::parseColorsStream(std::istream &in)
 		unsigned int r, g, b, a = 255, t = 0;
 		int items = sscanf(line, "%200s %u %u %u %u %u", name, &r, &g, &b, &a, &t);
 		if (items < 4) {
-			std::cerr << "Failed to parse color entry '" << line << "'" << std::endl;
+			errorstream << "Failed to parse color entry '" << line << "'" << std::endl;
 			continue;
 		}
 
@@ -414,7 +415,7 @@ void TileGenerator::openDb(const std::string &input_path)
 	}
 
 	if (!read_setting_default("readonly_backend", ifs, "").empty()) {
-		std::cerr << "Warning: Map with readonly_backend is not supported. "
+		errorstream << "Warning: Map with readonly_backend is not supported. "
 			"The result may be incomplete." << std::endl;
 	}
 
@@ -422,11 +423,9 @@ void TileGenerator::openDb(const std::string &input_path)
 	if (m_exhaustiveSearch == EXH_AUTO) {
 		size_t y_range = (m_yMax / 16 + 1) - (m_yMin / 16);
 		size_t blocks = sat_mul<size_t>(m_geomX2 - m_geomX, y_range, m_geomY2 - m_geomY);
-#ifndef NDEBUG
-		std::cerr << "Heuristic parameters:"
+		verbosestream << "Heuristic parameters:"
 			<< " preferRangeQueries()=" << m_db->preferRangeQueries()
 			<< " y_range=" << y_range << " blocks=" << blocks << std::endl;
-#endif
 		if (m_db->preferRangeQueries())
 			m_exhaustiveSearch = EXH_NEVER;
 		else if (blocks < 200000)
@@ -437,7 +436,7 @@ void TileGenerator::openDb(const std::string &input_path)
 			m_exhaustiveSearch = EXH_NEVER;
 	} else if (m_exhaustiveSearch == EXH_FULL || m_exhaustiveSearch == EXH_Y) {
 		if (m_db->preferRangeQueries()) {
-			std::cerr << "Note: The current database backend supports efficient "
+			errorstream << "Note: The current database backend supports efficient "
 				"range queries, forcing exhaustive search will generally result "
 				"in worse performance." << std::endl;
 		}
@@ -486,10 +485,8 @@ void TileGenerator::loadBlocks()
 		for (const auto &it : m_positions)
 			count += it.second.size();
 		m_progressMax = count;
-#ifndef NDEBUG
-		std::cerr << "Loaded " << count
+		verbosestream << "Loaded " << count
 			<< " positions (across Z: " << m_positions.size() << ") for rendering" << std::endl;
-#endif
 	}
 }
 
@@ -528,7 +525,7 @@ void TileGenerator::createImage()
 	image_height += (m_scales & SCALE_BOTTOM) ? scale_d : 0;
 
 	if(image_width > 4096 || image_height > 4096) {
-		std::cerr << "Warning: The width or height of the image to be created exceeds 4096 pixels!"
+		errorstream << "Warning: The width or height of the image to be created exceeds 4096 pixels!"
 			<< " (Dimensions: " << image_width << "x" << image_height << ")"
 			<< std::endl;
 	}
@@ -594,10 +591,8 @@ void TileGenerator::renderMap()
 			postRenderRow(zPos);
 		}
 	} else if (m_exhaustiveSearch == EXH_Y) {
-#ifndef NDEBUG
-		std::cerr << "Exhaustively searching height of "
+		verbosestream << "Exhaustively searching height of "
 			<< (yMax - yMin) << " blocks" << std::endl;
-#endif
 		std::vector<BlockPos> positions;
 		positions.reserve(yMax - yMin);
 		for (auto it = m_positions.rbegin(); it != m_positions.rend(); ++it) {
@@ -621,11 +616,9 @@ void TileGenerator::renderMap()
 	} else if (m_exhaustiveSearch == EXH_FULL) {
 		const size_t span_y = yMax - yMin;
 		m_progressMax = (m_geomX2 - m_geomX) * span_y * (m_geomY2 - m_geomY);
-#ifndef NDEBUG
-		std::cerr << "Exhaustively searching "
+		verbosestream << "Exhaustively searching "
 			<< (m_geomX2 - m_geomX) << "x" << span_y << "x"
 			<< (m_geomY2 - m_geomY) << " blocks" << std::endl;
-#endif
 
 		std::vector<BlockPos> positions;
 		positions.reserve(span_y);
@@ -879,14 +872,15 @@ void TileGenerator::printUnknown()
 {
 	if (m_unknownNodes.empty())
 		return;
-	std::cerr << "Unknown nodes:" << std::endl;
+	errorstream << "Unknown nodes:\n";
 	for (const auto &node : m_unknownNodes)
-		std::cerr << "\t" << node << std::endl;
+		errorstream << "\t" << node << '\n';
 	if (!m_renderedAny) {
-		std::cerr << "The map was read successfully and not empty, but none of the "
+		errorstream << "The map was read successfully and not empty, but none of the "
 			"encountered nodes had a color associated.\nCheck that you're using "
-			"the right colors.txt. It should match the game you have installed." << std::endl;
+			"the right colors.txt. It should match the game you have installed.\n";
 	}
+	errorstream << std::flush;
 }
 
 void TileGenerator::reportProgress(size_t count)

@@ -3,7 +3,9 @@
 #include <iostream>
 #include <algorithm>
 #include <cassert>
+
 #include "db-sqlite3.h"
+#include "log.h"
 #include "types.h"
 
 /* SQLite3Base */
@@ -14,7 +16,7 @@
 SQLite3Base::~SQLite3Base()
 {
 	if (db && sqlite3_close(db) != SQLITE_OK) {
-		std::cerr << "Error closing SQLite database: "
+		errorstream << "Error closing SQLite database: "
 			<< sqlite3_errmsg(db) << std::endl;
 	}
 }
@@ -66,9 +68,7 @@ DBSQLite3::DBSQLite3(const std::string &mapdir)
 	// error right there.
 	int result = prepare(stmt_get_block_pos, "SELECT x, y, z FROM blocks");
 	newFormat = result == SQLITE_OK;
-#ifndef NDEBUG
-	std::cerr << "Detected " << (newFormat ? "new" : "old") << " SQLite schema" << std::endl;
-#endif
+	verbosestream << "Detected " << (newFormat ? "new" : "old") << " SQLite schema" << std::endl;
 
 	if (newFormat) {
 		SQLOK(prepare(stmt_get_blocks_xz_range,
@@ -228,9 +228,7 @@ void DBSQLite3::getBlocksOnXZ(BlockList &blocks, int16_t x, int16_t z,
 		/* We have swapped this list before, this is not supposed to happen
 		 * because it's bad for performance. But rather than silently breaking
 		 * do the right thing and load the blocks again. */
-#ifndef NDEBUG
-		std::cerr << "Warning: suboptimal access pattern for sqlite3 backend" << std::endl;
-#endif
+		verbosestream << "suboptimal access pattern for sqlite3 backend?!" << std::endl;
 		loadBlockCache(z);
 	}
 	// Swap lists to avoid copying contents

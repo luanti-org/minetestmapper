@@ -10,6 +10,8 @@
 #include <stdexcept>
 #include "config.h"
 #include "TileGenerator.h"
+#include "util.h"
+#include "log.h"
 
 static void usage()
 {
@@ -59,8 +61,7 @@ static void usage()
 
 static inline bool file_exists(const std::string &path)
 {
-	std::ifstream ifs(path);
-	return ifs.is_open();
+	return file_exists(path.c_str());
 }
 
 static inline int stoi(const char *s)
@@ -78,23 +79,24 @@ static std::string search_colors(const std::string &worldpath)
 
 #ifndef _WIN32
 	char *home = std::getenv("HOME");
-	if (home) {
+	if (home && home[0]) {
 		std::string check = std::string(home) + "/.minetest/colors.txt";
 		if (file_exists(check))
 			return check;
 	}
 #endif
 
-	constexpr bool sharedir_valid = !(SHAREDIR[0] == '.' || SHAREDIR[0] == '\0');
+	constexpr bool sharedir_valid = !(SHAREDIR[0] == '.' || !SHAREDIR[0]);
 	if (sharedir_valid && file_exists(SHAREDIR "/colors.txt"))
 		return SHAREDIR "/colors.txt";
 
-	std::cerr << "Warning: Falling back to using colors.txt from current directory." << std::endl;
+	errorstream << "Warning: Falling back to using colors.txt from current directory." << std::endl;
 	return "colors.txt";
 }
 
 int main(int argc, char *argv[])
 {
+	const char *short_options = "hi:o:v";
 	const static struct option long_options[] =
 	{
 		{"help", no_argument, 0, 'h'},
@@ -120,8 +122,11 @@ int main(int argc, char *argv[])
 		{"noemptyimage", no_argument, 0, 'n'},
 		{"exhaustive", required_argument, 0, 'j'},
 		{"dumpblock", required_argument, 0, 'k'},
+		{"verbose", no_argument, 0, 'v'},
 		{0, 0, 0, 0}
 	};
+
+	configure_log_streams(false);
 
 	std::string input;
 	std::string output;
@@ -132,7 +137,7 @@ int main(int argc, char *argv[])
 	TileGenerator generator;
 	while (1) {
 		int option_index;
-		int c = getopt_long(argc, argv, "hi:o:", long_options, &option_index);
+		int c = getopt_long(argc, argv, short_options, long_options, &option_index);
 		if (c == -1)
 			break; // done
 
@@ -192,7 +197,7 @@ int main(int argc, char *argv[])
 					geometry >> x >> c >> y >> w >> h;
 					if (geometry.fail() || c != ':' || w < 1 || h < 1) {
 						usage();
-						exit(1);
+						return 1;
 					}
 					generator.setGeometry(x, y, w, h);
 				}
@@ -220,7 +225,7 @@ int main(int argc, char *argv[])
 				generator.setDontWriteEmpty(true);
 				break;
 			case 'j': {
-					int mode = EXH_AUTO;;
+					int mode = EXH_AUTO;
 					if (!strcmp(optarg, "never"))
 						mode = EXH_NEVER;
 					else if (!strcmp(optarg, "y"))
@@ -236,12 +241,15 @@ int main(int argc, char *argv[])
 				iss >> dumpblock.x >> c >> dumpblock.y >> c2 >> dumpblock.z;
 				if (iss.fail() || c != ',' || c2 != ',') {
 					usage();
-					exit(1);
+					return 1;
 				}
 				break;
 			}
+			case 'v':
+				configure_log_streams(true);
+				break;
 			default:
-				exit(1);
+				return 1;
 		}
 	}
 
@@ -252,7 +260,6 @@ int main(int argc, char *argv[])
 	}
 
 	try {
-
 		if (onlyPrintExtent) {
 			generator.printGeometry(input);
 			return 0;
@@ -267,7 +274,7 @@ int main(int argc, char *argv[])
 		generator.generate(input, output);
 
 	} catch (const std::exception &e) {
-		std::cerr << "Exception: " << e.what() << std::endl;
+		errorstream << "Exception: " << e.what() << std::endl;
 		return 1;
 	}
 	return 0;

@@ -3,11 +3,11 @@
 #include <fstream>
 #include <cstdlib>
 #include <arpa/inet.h>
+
 #include "db-postgresql.h"
 #include "util.h"
+#include "log.h"
 #include "types.h"
-
-#define ARRLEN(x) (sizeof(x) / sizeof((x)[0]))
 
 /* PostgreSQLBase */
 
@@ -108,7 +108,7 @@ DBPostgreSQL::~DBPostgreSQL()
 	try {
 		checkResults(PQexec(db, "COMMIT;"));
 	} catch (const std::exception& caught) {
-		std::cerr << "could not finalize: " << caught.what() << std::endl;
+		errorstream << "could not finalize: " << caught.what() << std::endl;
 	}
 }
 

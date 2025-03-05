@@ -179,6 +179,7 @@ target_sources(minetestmapper PRIVATE
 	src/Image.cpp
 	src/mapper.cpp
 	src/util.cpp
+	src/log.cpp
 	src/db-sqlite3.cpp
 	$<$<BOOL:${USE_POSTGRESQL}>:src/db-postgresql.cpp>
 	$<$<BOOL:${USE_LEVELDB}>:src/db-leveldb.cpp>

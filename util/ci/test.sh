@@ -31,7 +31,7 @@ checkmap () {
 	local c=$1
 	shift
 	rm -f map.png
-	./minetestmapper --noemptyimage -i ./testmap -o map.png "$@"
+	./minetestmapper --noemptyimage -v -i ./testmap -o map.png "$@"
 	if [[ $c -eq 1 && ! -f map.png ]]; then
 		echo "Output not generated!"
 		exit 1

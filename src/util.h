@@ -3,6 +3,8 @@
 #include <string>
 #include <iostream>
 
+#define ARRLEN(x) (sizeof(x) / sizeof((x)[0]))
+
 template<typename T>
 static inline T mymax(T a, T b)
 {

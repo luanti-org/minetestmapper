@@ -4,6 +4,7 @@
 
 #include "BlockDecoder.h"
 #include "ZlibDecompressor.h"
+#include "log.h"
 
 static inline uint16_t readU16(const unsigned char *data)
 {
@@ -161,7 +162,7 @@ const std::string &BlockDecoder::getNode(u8 x, u8 y, u8 z) const
 		return empty;
 	NameMap::const_iterator it = m_nameMap.find(content);
 	if (it == m_nameMap.end()) {
-		std::cerr << "Skipping node with invalid ID." << std::endl;
+		errorstream << "Skipping node with invalid ID." << std::endl;
 		return empty;
 	}
 	return it->second;

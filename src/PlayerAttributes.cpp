@@ -7,6 +7,7 @@
 #include "config.h"
 #include "PlayerAttributes.h"
 #include "util.h"
+#include "log.h"
 #include "db-sqlite3.h" // SQLite3Base
 
 namespace {
@@ -82,7 +83,7 @@ void FilesReader::read(PlayerAttributes::Players &dest)
 		Player player;
 		player.name = name;
 		if (!parse_pos(position, player)) {
-			std::cerr << "Failed to parse position " << position << std::endl;
+			errorstream << "Failed to parse position '" << position << "'" << std::endl;
 			continue;
 		}
 

@@ -12,13 +12,15 @@ See additional optional parameters below.
 generates an overview image of a Luanti map. This is a port of
 the original minetestmapper.py to C++, that is both faster and
 provides more functionality than the obsolete Python script.
+
 .SH MANDATORY PARAMETERS
 .TP
 .BR \-i " " \fIworld_path\fR
-Input world path.
+Input world path
 .TP
 .BR \-o " " \fIoutput_image\fR
-Path to output image. (only PNG supported currently)
+Path to output image
+
 .SH OPTIONAL PARAMETERS
 .TP
 .BR \-\-bgcolor " " \fIcolor\fR
@@ -59,6 +61,10 @@ Don't draw shading on nodes
 .TP
 .BR \-\-noemptyimage
 Don't output anything when the image would be empty.
+
+.TP
+.BR \-\-verbose
+Enable verbose log output.
 
 .TP
 .BR \-\-min-y " " \fInumber\fR
@@ -108,7 +114,7 @@ when you don't care about the world below e.g. -60 and above 1000 nodes.
 Instead of rendering anything try to load the block at the given position (\fIx,y,z\fR) and print its raw data as hexadecimal.
 
 .SH MORE INFORMATION
-Website: https://github.com/minetest/minetestmapper
+Website: https://github.com/luanti-org/minetestmapper
 
 .SH MAN PAGE AUTHOR
 Daniel Moerner
