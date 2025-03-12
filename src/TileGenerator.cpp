@@ -258,6 +258,7 @@ void TileGenerator::parseColorsFile(const std::string &fileName)
 	std::ifstream in(fileName);
 	if (!in.good())
 		throw std::runtime_error("Specified colors file could not be found");
+	verbosestream << "Parsing colors.txt: " << fileName << std::endl;
 	parseColorsStream(in);
 }
 
@@ -527,8 +528,11 @@ void TileGenerator::createImage()
 	image_height += (m_scales & SCALE_BOTTOM) ? scale_d : 0;
 
 	if(image_width > 4096 || image_height > 4096) {
-		errorstream << "Warning: The width or height of the image to be created exceeds 4096 pixels!"
-			<< " (Dimensions: " << image_width << "x" << image_height << ")"
+		errorstream << "Warning: The side length of the image to be created exceeds 4096 pixels!"
+			<< " (dimensions: " << image_width << "x" << image_height << ")"
+			<< std::endl;
+	} else {
+		verbosestream << "Creating image with size " << image_width << "x" << image_height
 			<< std::endl;
 	}
 	m_image = new Image(image_width, image_height);

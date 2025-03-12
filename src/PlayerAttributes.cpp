@@ -136,13 +136,15 @@ PlayerAttributes::PlayerAttributes(const std::string &worldDir)
 	std::string backend = read_setting_default("player_backend", ifs, "files");
 	ifs.close();
 
-	verbosestream << "Player backend is " << backend << std::endl;
+	verbosestream << "Player backend: " << backend << std::endl;
 	if (backend == "files")
 		FilesReader(worldDir + "players").read(m_players);
 	else if (backend == "sqlite3")
 		SQLiteReader(worldDir + "players.sqlite").read(m_players);
 	else
 		throw std::runtime_error(std::string("Unknown player backend: ") + backend);
+
+	verbosestream << "Loaded " << m_players.size() << " players" << std::endl;
 }
 
 PlayerAttributes::Players::const_iterator PlayerAttributes::begin() const

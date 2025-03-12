@@ -91,7 +91,7 @@ static std::string search_colors(const std::string &worldpath)
 		return SHAREDIR "/colors.txt";
 
 	errorstream << "Warning: Falling back to using colors.txt from current directory." << std::endl;
-	return "colors.txt";
+	return "./colors.txt";
 }
 
 int main(int argc, char *argv[])
