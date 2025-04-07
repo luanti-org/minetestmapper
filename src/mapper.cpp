@@ -15,9 +15,9 @@
 
 static void usage()
 {
-	const std::pair<const char*, const char*> options[] = {
-		{"-i/--input", "<world_path>"},
-		{"-o/--output", "<output_image>"},
+	static const std::pair<const char*, const char*> options[] = {
+		{"-i/--input", "<path>"},
+		{"-o/--output", "<path>"},
 		{"--bgcolor", "<color>"},
 		{"--scalecolor", "<color>"},
 		{"--playercolor", "<color>"},
@@ -28,13 +28,14 @@ static void usage()
 		{"--drawalpha", ""},
 		{"--noshading", ""},
 		{"--noemptyimage", ""},
+		{"-v/--verbose", ""},
 		{"--min-y", "<y>"},
 		{"--max-y", "<y>"},
 		{"--backend", "<backend>"},
-		{"--geometry", "x:y+w+h"},
+		{"--geometry", "x:z+w+h"},
 		{"--extent", ""},
-		{"--zoom", "<zoomlevel>"},
-		{"--colors", "<colors.txt>"},
+		{"--zoom", "<factor>"},
+		{"--colors", "<path>"},
 		{"--scales", "[t][b][l][r]"},
 		{"--exhaustive", "never|y|full|auto"},
 		{"--dumpblock", "x,y,z"},
@@ -57,6 +58,11 @@ static void usage()
 	for (auto s : backends)
 		printf("%s ", s.c_str());
 	printf("\n");
+#ifdef _WIN32
+	printf("See also the full documentation in README.rst\n");
+#else
+	printf("See also the full documentation in minetestmapper(6) or README.rst\n");
+#endif
 }
 
 static inline bool file_exists(const std::string &path)
