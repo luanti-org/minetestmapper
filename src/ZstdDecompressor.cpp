@@ -29,7 +29,8 @@ void ZstdDecompressor::decompress(ustring &buffer)
 	// output space is extended in chunks of this size
 	constexpr size_t BUFSIZE = 8 * 1024;
 
-	buffer.resize(BUFSIZE);
+	if (buffer.empty())
+		buffer.resize(BUFSIZE);
 	ZSTD_outBuffer outbuf = { &buffer[0], buffer.size(), 0 };
 
 	ZSTD_initDStream(stream);

@@ -48,16 +48,17 @@ void ZlibDecompressor::decompress(ustring &buffer)
 
 	strm.next_in = const_cast<unsigned char *>(data);
 	strm.avail_in = size;
-	buffer.resize(BUFSIZE);
+	if (buffer.empty())
+		buffer.resize(BUFSIZE);
 	strm.next_out = &buffer[0];
-	strm.avail_out = BUFSIZE;
+	strm.avail_out = buffer.size();
 
 	int ret = 0;
 	do {
 		ret = Z(inflate)(&strm, Z_NO_FLUSH);
 		if (strm.avail_out == 0) {
 			const auto off = buffer.size();
-			buffer.reserve(off + BUFSIZE);
+			buffer.resize(off + BUFSIZE);
 			strm.next_out = &buffer[off];
 			strm.avail_out = BUFSIZE;
 		}
