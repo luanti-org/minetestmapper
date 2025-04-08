@@ -1,26 +1,27 @@
 #!/bin/bash -e
 
-[ -z "$CXX" ] && exit 255
-export CC=false # don't need it actually
-
-variant=win32
-[[ "$(basename "$CXX")" == "x86_64-"* ]] && variant=win64
-
 #######
-# this expects unpacked libraries similar to what Luanti's buildbot uses
-# $extradlls will typically point to the DLLs for libgcc, libstdc++ and libpng
+# this expects unpacked libraries and a toolchain file like Luanti's buildbot uses
+# $extradlls will typically contain the compiler-specific DLLs and libpng
+toolchain_file=
 libgd_dir=
 zlib_dir=
 zstd_dir=
 sqlite_dir=
 leveldb_dir=
-extradlls=()
+extradlls=(
+)
 #######
 
-[ -f ./CMakeLists.txt ] || exit 1
+[ -f "$toolchain_file" ] || exit 1
+variant=win32
+grep -q 'CX?X?_COMPILER.*x86_64-' $toolchain_file && variant=win64
+echo "Detected target $variant"
+
+[ -f ./CMakeLists.txt ] || { echo "run from root folder" >&2; exit 1; }
 
 cmake -S . -B build \
-	-DCMAKE_SYSTEM_NAME=Windows \
+	-DCMAKE_TOOLCHAIN_FILE="$toolchain_file" \
 	-DCMAKE_EXE_LINKER_FLAGS="-s" \
 	\
 	-DENABLE_LEVELDB=1 \
@@ -34,7 +35,7 @@ cmake -S . -B build \
 	-DZLIB_INCLUDE_DIR=$zlib_dir/include \
 	-DZLIB_LIBRARY=$zlib_dir/lib/libz.dll.a \
 	-DZSTD_INCLUDE_DIR=$zstd_dir/include \
-	-DZSTD_LIBRARY=$zstd_dir/lib/libzstd.dll.a \
+	-DZSTD_LIBRARY=$zstd_dir/lib/libzstd.dll.a
 
 make -C build -j4
 
