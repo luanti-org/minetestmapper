@@ -60,7 +60,9 @@ checkmap 0 --max-y 16
 checkmap 1 --min-y 18
 checkmap 0 --min-y 19
 
-msg "old schema: all limits"
+# do this for every strategy
+for exh in never y full; do
+msg "old schema: all limits ($exh)"
 # fill the map with more blocks and then request just a single one to be rendered
 # this will run through internal consistency asserts.
 writemap "
@@ -73,7 +75,8 @@ INSERT INTO blocks SELECT $(encodepos 3 2 2), d FROM d;
 INSERT INTO blocks SELECT $(encodepos 2 3 2), d FROM d;
 INSERT INTO blocks SELECT $(encodepos 2 2 3), d FROM d;
 "
-checkmap 1 --geometry 32:32+16+16 --min-y 32 --max-y $((32+16-1))
+checkmap 1 --geometry 32:32+16+16 --min-y 32 --max-y $((32+16-1)) --exhaustive $exh
+done
 
 msg "new schema"
 writemap "
@@ -82,8 +85,9 @@ INSERT INTO blocks SELECT 0, 1, 0, d FROM d;
 "
 checkmap 1
 
-msg "new schema: all limits"
 # same as above
+for exh in never y full; do
+msg "new schema: all limits ($exh)"
 writemap "
 $schema_new
 INSERT INTO blocks SELECT 2, 2, 2, d FROM d;
@@ -94,7 +98,8 @@ INSERT INTO blocks SELECT 3, 2, 2, d FROM d;
 INSERT INTO blocks SELECT 2, 3, 2, d FROM d;
 INSERT INTO blocks SELECT 2, 2, 3, d FROM d;
 "
-checkmap 1 --geometry 32:32+16+16 --min-y 32 --max-y $((32+16-1))
+checkmap 1 --geometry 32:32+16+16 --min-y 32 --max-y $((32+16-1)) --exhaustive $exh
+done
 
 msg "new schema: empty map"
 writemap "$schema_new"
