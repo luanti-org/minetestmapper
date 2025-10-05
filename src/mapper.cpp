@@ -274,12 +274,12 @@ int main(int argc, char *argv[])
 			return 0;
 		}
 
-		if(colors.empty())
+		if (colors.empty())
 			colors = search_colors(input);
 		generator.parseColorsFile(colors);
 		generator.generate(input, output);
 
-	} catch (const std::exception &e) {
+	} catch (std::exception &e) {
 		errorstream << "Exception: " << e.what() << std::endl;
 		return 1;
 	}

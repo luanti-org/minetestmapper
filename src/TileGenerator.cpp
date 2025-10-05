@@ -546,6 +546,19 @@ void TileGenerator::renderMap()
 	const int16_t yMin = mod16(m_yMin);
 	size_t count = 0;
 
+	// returns true to skip
+	auto decode = [&] (BlockPos pos, const ustring &buf) -> bool {
+		blk.reset();
+		try {
+			blk.decode(buf);
+		} catch (std::exception &e) {
+			errorstream << "While decoding block " << pos.x << ',' << pos.y << ',' << pos.z
+				<< ':' << std::endl;
+			throw;
+		};
+		return blk.isEmpty();
+	};
+
 	auto renderSingle = [&] (int16_t xPos, int16_t zPos, BlockList &blockStack) {
 		m_readPixels.reset();
 		m_readInfo.reset();
@@ -562,10 +575,7 @@ void TileGenerator::renderMap()
 			assert(pos.x == xPos && pos.z == zPos);
 			assert(pos.y >= yMin && pos.y < yMax);
 
-			blk.reset();
-			blk.decode(it.second);
-			if (blk.isEmpty())
-				continue;
+			decode(pos, it.second);
 			renderMapBlock(blk, pos);
 
 			// Exit out if all pixels for this MapBlock are covered

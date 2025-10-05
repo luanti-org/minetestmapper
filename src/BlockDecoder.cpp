@@ -1,6 +1,5 @@
 #include <string>
-#include <iostream>
-#include <sstream>
+#include <utility>
 
 #include "BlockDecoder.h"
 #include "ZlibDecompressor.h"
@@ -46,13 +45,12 @@ void BlockDecoder::decode(const ustring &datastr)
 {
 	const unsigned char *data = datastr.c_str();
 	size_t length = datastr.length();
-	// TODO: bounds checks
+	// TODO: Add strict bounds checks everywhere
 
 	uint8_t version = data[0];
 	if (version < 22) {
-		std::ostringstream oss;
-		oss << "Unsupported map version " << (int)version;
-		throw std::runtime_error(oss.str());
+		auto err = "Unsupported map version " + std::to_string(version);
+		throw std::runtime_error(err);
 	}
 	m_version = version;
 
@@ -87,7 +85,7 @@ void BlockDecoder::decode(const ustring &datastr)
 			else if (name == "ignore")
 				m_blockIgnoreId = nodeId;
 			else
-				m_nameMap[nodeId] = name;
+				m_nameMap[nodeId] = std::move(name);
 			dataOffset += nameLen;
 		}
 	};
@@ -99,14 +97,20 @@ void BlockDecoder::decode(const ustring &datastr)
 	dataOffset++;
 	uint8_t paramsWidth = data[dataOffset];
 	dataOffset++;
-	if (contentWidth != 1 && contentWidth != 2)
-		throw std::runtime_error("unsupported map version (contentWidth)");
-	if (paramsWidth != 2)
-		throw std::runtime_error("unsupported map version (paramsWidth)");
+	if (contentWidth != 1 && contentWidth != 2) {
+		auto err = "Unsupported map version contentWidth=" + std::to_string(contentWidth);
+		throw std::runtime_error(err);
+	}
+	if (paramsWidth != 2) {
+		auto err = "Unsupported map version paramsWidth=" + std::to_string(paramsWidth);
+		throw std::runtime_error(err);
+	}
 	m_contentWidth = contentWidth;
+	const size_t mapDataSize = (contentWidth + paramsWidth) * 4096;
 
 	if (version >= 29) {
-		size_t mapDataSize = (contentWidth + paramsWidth) * 4096;
+		if (length < dataOffset + mapDataSize)
+			throw std::runtime_error("Map data buffer truncated");
 		m_mapData.assign(data + dataOffset, mapDataSize);
 		return; // we have read everything we need and can return early
 	}
@@ -117,6 +121,9 @@ void BlockDecoder::decode(const ustring &datastr)
 	decompressor.decompress(m_mapData);
 	decompressor.decompress(m_scratch); // unused metadata
 	dataOffset = decompressor.seekPos();
+
+	if (m_mapData.size() < mapDataSize)
+		throw std::runtime_error("Map data buffer truncated");
 
 	// Skip unused node timers
 	if (version == 23)
@@ -132,7 +139,7 @@ void BlockDecoder::decode(const ustring &datastr)
 
 	// Skip unused static objects
 	dataOffset++; // Skip static object version
-	int staticObjectCount = readU16(data + dataOffset);
+	uint16_t staticObjectCount = readU16(data + dataOffset);
 	dataOffset += 2;
 	for (int i = 0; i < staticObjectCount; ++i) {
 		dataOffset += 13;
@@ -161,7 +168,7 @@ const std::string &BlockDecoder::getNode(u8 x, u8 y, u8 z) const
 		return empty;
 	NameMap::const_iterator it = m_nameMap.find(content);
 	if (it == m_nameMap.end()) {
-		errorstream << "Skipping node with invalid ID." << std::endl;
+		errorstream << "Skipping node with invalid ID " << (int)content << std::endl;
 		return empty;
 	}
 	return it->second;
