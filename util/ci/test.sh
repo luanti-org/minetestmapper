@@ -13,7 +13,7 @@ encodepos () {
 	echo "$(($1 + 0x1000 * $2 + 0x1000000 * $3))"
 }
 
-# create map file with sql statements
+# create map file using SQL statements
 writemap () {
 	rm -rf $mapdir
 	mkdir $mapdir
@@ -37,6 +37,17 @@ checkmap () {
 		exit 1
 	elif [[ $c -eq 0 && -f map.png ]]; then
 		echo "Output was generated, none expected!"
+		exit 1
+	fi
+	echo "Passed."
+}
+
+# check that invocation returned an error
+checkerr () {
+	local r=0
+	./minetestmapper --noemptyimage -v -i ./testmap -o map.png "$@" || r=1
+	if [ $r -eq 0 ]; then
+		echo "Did not return error!"
 		exit 1
 	fi
 	echo "Passed."
@@ -114,3 +125,17 @@ mkdir $mapdir/players
 printf '%s\n' "name = cat" "position = (80,0,80)" >$mapdir/players/cat
 # we can't check that it actually worked, however
 checkmap 1 --drawplayers --zoom 4
+
+msg "block error (wrong version)"
+writemap "
+$schema_new
+INSERT INTO blocks VALUES (0, 0, 0, x'150000');
+"
+checkerr
+
+msg "block error (invalid zstd)"
+writemap "
+$schema_new
+INSERT INTO blocks VALUES (0, 0, 0, x'1d28b52ffd2001090000');
+"
+checkerr
