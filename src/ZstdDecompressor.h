@@ -6,7 +6,12 @@
 class ZstdDecompressor
 {
 public:
-	class DecompressError : std::exception {};
+	class DecompressError : public std::exception {
+	public:
+		const char* what() const noexcept override {
+			return "ZstdDecompressor::DecompressError";
+		}
+	};
 
 	ZstdDecompressor();
 	~ZstdDecompressor();
