@@ -544,7 +544,7 @@ void TileGenerator::renderMap()
 	BlockDecoder blk;
 	const int16_t yMax = mod16(m_yMax) + 1;
 	const int16_t yMin = mod16(m_yMin);
-	size_t count = 0;
+	size_t bTotal = 0, bRender = 0, bEmpty = 0;
 
 	// returns true to skip
 	auto decode = [&] (BlockPos pos, const ustring &buf) -> bool {
@@ -560,6 +560,9 @@ void TileGenerator::renderMap()
 	};
 
 	auto renderSingle = [&] (int16_t xPos, int16_t zPos, BlockList &blockStack) {
+		if (blockStack.empty())
+			return;
+
 		m_readPixels.reset();
 		m_readInfo.reset();
 		for (int i = 0; i < 16; i++) {
@@ -570,12 +573,17 @@ void TileGenerator::renderMap()
 			}
 		}
 
+		bTotal += blockStack.size();
 		for (const auto &it : blockStack) {
 			const BlockPos pos = it.first;
 			assert(pos.x == xPos && pos.z == zPos);
 			assert(pos.y >= yMin && pos.y < yMax);
 
-			decode(pos, it.second);
+			if (decode(pos, it.second)) {
+				bEmpty++;
+				continue;
+			}
+			bRender++;
 			renderMapBlock(blk, pos);
 
 			// Exit out if all pixels for this MapBlock are covered
@@ -591,6 +599,7 @@ void TileGenerator::renderMap()
 			renderShading(zPos);
 	};
 
+	size_t count = 0; // fraction of m_progressMax
 	if (m_exhaustiveSearch == EXH_NEVER) {
 		for (auto it = m_positions.rbegin(); it != m_positions.rend(); ++it) {
 			int16_t zPos = it->first;
@@ -656,6 +665,8 @@ void TileGenerator::renderMap()
 	}
 
 	reportProgress(m_progressMax);
+	verbosestream << "Block stats: " << bTotal << " total, " << bRender
+		<< " rendered, " << bEmpty << " empty" << std::endl;
 }
 
 void TileGenerator::renderMapBlock(const BlockDecoder &blk, const BlockPos &pos)
