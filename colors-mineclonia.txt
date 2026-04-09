@@ -1,0 +1,275 @@
+# use this as colors.txt for Luanti-Mineclonia Server V.5.15.1
+# Wasser
+mcl_core:water_source 0 0 255
+mcl_core:water_flowing 0 0 200
+
+# Lava
+mcl_core:lava_source 255 64 0
+mcl_core:lava_flowing 255 128 0
+
+# Gras und Erde
+mcl_core:dirt_with_grass 127 204 25
+mcl_core:dirt_with_grass_snow 200 230 255
+mcl_core:dirt 139 87 66
+mcl_core:coarse_dirt 111 83 57
+mcl_core:podzol 123 88 44
+mcl_core:mycelium 125 85 140
+mcl_core:grass_path 148 128 88
+mcl_core:rooted_dirt 100 60 40
+
+# Bäume und Blätter
+mcl_trees:leaves_oak 34 139 34
+mcl_trees:leaves_spruce 0 100 0
+mcl_trees:leaves_birch 100 200 100
+mcl_trees:leaves_acacia 210 180 140
+mcl_trees:leaves_azalea 150 200 150
+mcl_trees:leaves_azalea_flowering 200 150 200
+mcl_trees:leaves_cherry_blossom 255 181 197
+mcl_trees:leaves_pale_oak 180 220 180
+mcl_trees:tree_oak 101 67 33
+mcl_trees:tree_spruce 50 30 20
+mcl_trees:tree_birch 200 180 150
+mcl_trees:tree_acacia 160 82 45
+mcl_trees:tree_dark_oak 60 40 30
+mcl_trees:tree_cherry_blossom 200 150 150
+mcl_trees:tree_pale_oak 180 160 140
+
+# Fels und Steine
+mcl_core:stone 128 128 128
+mcl_core:stone_smooth 150 150 150
+mcl_core:cobble 128 128 128
+mcl_core:stonebrick 150 150 150
+mcl_core:stonebrickcarved 150 150 150
+mcl_core:stonebrickcracked 120 120 120
+mcl_core:stonebrickmossy 100 120 100
+mcl_core:mossycobble 100 120 100
+mcl_core:andesite 130 130 130
+mcl_core:diorite 180 180 180
+mcl_core:granite 150 90 90
+mcl_core:bedrock 85 85 85
+mcl_core:obsidian 10 10 30
+mcl_core:sandstone 210 200 160
+mcl_core:sandstonecarved 210 200 160
+mcl_core:sandstonesmooth 210 200 160
+mcl_deepslate:deepslate 100 100 100
+mcl_deepslate:deepslate_cobbled 100 100 100
+mcl_deepslate:deepslate_bricks 110 110 110
+mcl_deepslate:tuff 100 100 120
+mcl_deepslate:tuff_bricks 110 110 130
+
+# Metalle und Erze
+mcl_core:goldblock 255 215 0
+mcl_core:diamondblock 64 224 208
+mcl_core:stone_with_coal 50 50 50
+mcl_core:stone_with_iron 200 170 120
+mcl_core:stone_with_gold 255 215 0
+mcl_core:stone_with_diamond 64 224 208
+mcl_core:stone_with_emerald 85 255 85
+mcl_core:stone_with_redstone 255 0 0
+mcl_core:stone_with_lapis 38 97 156
+mcl_copper:block_preserved 220 120 80
+mcl_copper:block_oxidized_preserved 80 180 180
+mcl_copper:block_weathered_preserved 100 150 150
+
+# Glas
+mcl_core:glass 180 220 255
+mcl_core:glass_light_blue 173 216 230
+mcl_core:glass_magenta 255 0 255
+mcl_core:glass_purple 128 0 128
+
+# Pflanzen und Blumen
+mcl_flowers:poppy 255 0 0
+mcl_flowers:dandelion 255 255 0
+mcl_flowers:allium 150 0 200
+mcl_flowers:oxeye_daisy 255 255 255
+mcl_flowers:tulip_red 255 0 0
+mcl_flowers:tulip_orange 255 165 0
+mcl_flowers:tulip_pink 255 192 203
+mcl_flowers:tulip_white 255 255 255
+mcl_flowers:cornflower 65 105 225
+mcl_flowers:lilac 200 162 200
+mcl_flowers:rose_bush 255 0 0
+mcl_flowers:sunflower 255 255 0
+mcl_flowers:waterlily 100 200 100
+
+# Wolle und Teppiche
+mcl_wool:white 255 255 255
+mcl_wool:purple_carpet 128 0 128
+
+# Sonstiges
+mcl_core:snow 255 255 255
+mcl_core:ice 173 216 230
+mcl_core:packed_ice 135 206 250
+mcl_core:clay 164 164 164
+mcl_core:brick_block 160 80 80
+mcl_core:bone_block 230 230 210
+mcl_core:cactus 64 224 208
+mcl_core:reeds 100 200 100
+mcl_core:cobweb 230 230 230
+mcl_core:deadbush 139 69 19
+mcl_core:vine 0 150 0
+mcl_core:gravel 128 128 128
+mcl_core:sand 240 230 140
+mcl_core:redsand 200 100 50
+mcl_core:void 0 0 0
+
+# Amethyst
+mcl_amethyst:amethyst_block 150 80 200
+mcl_amethyst:amethyst_cluster 180 100 230
+mcl_amethyst:budding_amethyst_block 150 80 200
+mcl_amethyst:calcite 230 230 230
+
+# Nether
+mcl_nether:netherrack 85 25 25
+mcl_nether:magma 128 30 30
+
+# Möbel und Geräte
+mcl_chests:chest_left 139 69 19
+mcl_chests:chest_right 139 69 19
+mcl_chests:chest_small 139 69 19
+mcl_crafting_table:crafting_table 139 69 19
+mcl_furnaces:furnace 50 50 50
+mcl_anvils:anvil 50 50 50
+mcl_books:bookshelf 110 80 50
+mcl_enchanting:table 100 100 200
+mcl_brewing:stand_000 50 50 50
+mcl_dispensers:dispenser 100 100 100
+mcl_smoker:smoker 100 100 100
+mcl_blastfurnace:blast_furnace 50 50 50
+mcl_smithing_table:table 50 50 50
+mcl_grindstone:grindstone 150 150 150
+mcl_lectern:lectern 100 80 50
+mcl_loom:loom 100 80 50
+mcl_cartography_table:table 100 80 50
+mcl_fletching_table:fletching_table 100 80 50
+mcl_stonecutter:stonecutter 100 100 100
+
+# Türen und Falltüren
+mcl_doors:door_oak_b_1 101 67 33
+mcl_doors:door_oak_b_2 101 67 33
+mcl_doors:door_oak_t_1 101 67 33
+mcl_doors:door_oak_t_2 101 67 33
+mcl_doors:door_spruce_b_1 50 30 20
+mcl_doors:door_spruce_b_2 50 30 20
+mcl_doors:door_spruce_t_1 50 30 20
+mcl_doors:door_spruce_t_2 50 30 20
+
+# Zäune und Mauern
+mcl_fences:oak_fence 101 67 33
+mcl_fences:spruce_fence 50 30 20
+mcl_fences:acacia_fence 160 82 45
+mcl_fences:dark_oak_fence 60 40 30
+mcl_walls:cobble_0 128 128 128
+mcl_walls:stonebrick 150 150 150
+
+# Sonstige Blöcke
+mcl_barrels:barrel_closed 100 80 50
+mcl_beehives:bee_nest 200 180 100
+mcl_composters:composter 100 80 50
+mcl_panes:pane_natural_flat 180 180 180
+mcl_panes:pane_blue_flat 0 0 255
+mcl_panes:pane_light_blue_flat 173 216 230
+mcl_panes:pane_red_flat 255 0 0
+mcl_panes:pane_green_flat 0 128 0
+mcl_panes:pane_orange_flat 255 165 0
+mcl_panes:pane_yellow_flat 255 255 0
+mcl_panes:pane_purple_flat 128 0 128
+mcl_panes:pane_magenta_flat 255 0 255
+mcl_panes:pane_white_flat 255 255 255
+
+# Keramik und Töpfe
+mcl_pottery_sherds:pot 150 100 80
+
+# Druckplatten
+mcl_pressureplates:pressure_plate_oak_off 101 67 33
+mcl_pressureplates:pressure_plate_stone_off 128 128 128
+
+# Schilder
+mcl_signs:standing_sign_oak 101 67 33
+
+# Knöpfe
+mcl_buttons:button_oak_off 101 67 33
+
+# Laternen und Ketten
+mcl_lanterns:lantern_ceiling 100 100 80
+mcl_lanterns:lantern_floor 100 100 80
+mcl_lanterns:copper_lantern_ceiling_preserved 220 120 80
+
+# Betten
+mcl_beds:bed_blue_bottom 0 0 255
+mcl_beds:bed_blue_top 0 0 255
+mcl_beds:bed_brown_bottom 139 69 19
+mcl_beds:bed_brown_top 139 69 19
+mcl_beds:bed_green_bottom 0 128 0
+mcl_beds:bed_green_top 0 128 0
+mcl_beds:bed_lime_bottom 50 205 50
+mcl_beds:bed_lime_top 50 205 50
+mcl_beds:bed_orange_bottom 255 165 0
+mcl_beds:bed_orange_top 255 165 0
+mcl_beds:bed_pink_bottom 255 192 203
+mcl_beds:bed_pink_top 255 192 203
+mcl_beds:bed_purple_bottom 128 0 128
+mcl_beds:bed_purple_top 128 0 128
+mcl_beds:bed_red_bottom 255 0 0
+mcl_beds:bed_red_top 255 0 0
+mcl_beds:bed_white_bottom 255 255 255
+mcl_beds:bed_white_top 255 255 255
+
+# Töpfe und Blumentöpfe
+mcl_flowerpots:flower_pot 139 69 19
+mcl_flowerpots:flower_pot_allium 150 0 200
+mcl_flowerpots:flower_pot_oxeye_daisy 255 255 255
+
+# Korallen und Meerespflanzen
+mcl_ocean:brain_coral_block 255 105 180
+mcl_ocean:tube_coral_block 50 50 200
+mcl_ocean:fire_coral_block 255 69 0
+mcl_ocean:horn_coral_block 255 215 0
+mcl_ocean:bubble_coral_block 255 192 203
+mcl_ocean:sea_lantern 173 216 230
+mcl_ocean:prismarine 100 180 180
+
+# Sculk
+mcl_sculk:sculk 0 50 50
+mcl_sculk:catalyst 0 80 80
+
+# TNT und Spawner
+mcl_tnt:tnt 255 0 0
+mcl_mobspawners:spawner 0 100 100
+mcl_trial_spawners:trialspawner 100 100 100
+
+# Fackeln und Leuchtmittel
+mcl_torches:torch 255 165 0
+mcl_torches:torch_wall 255 165 0
+mcl_lanterns:lantern_ceiling 255 255 200
+mcl_lanterns:lantern_floor 255 255 200
+mcl_candles:candle_lit_3 255 255 200
+mcl_candles:candle_lit_4 255 255 200
+mcl_cauldrons:cauldron 50 50 50
+mcl_campfires:campfire_lit 255 165 0
+
+# Armor Stand
+mcl_armor_stand:armor_stand 100 100 100
+
+# Ketten und Blitze
+mcl_lanterns:chain 100 100 100
+mcl_lightning_rods:rod_oxidized_preserved 80 180 180
+
+# Dripstone
+mcl_dripstone:dripstone_block 120 80 60
+mcl_dripstone:dripstone_bottom_base 120 80 60
+
+# Lush Caves
+mcl_lush_caves:azalea 150 200 150
+mcl_lush_caves:azalea_flowering 200 150 200
+mcl_lush_caves:cave_vines 0 150 0
+mcl_lush_caves:cave_vines_lit 0 200 50
+mcl_lush_caves:moss 50 150 50
+mcl_lush_caves:moss_carpet 50 150 50
+mcl_lush_caves:spore_blossom 200 100 200
+mcl_lush_caves:dripleaf_big 0 150 0
+mcl_lush_caves:dripleaf_small 0 150 0
+
+# Pale Oak
+mcl_pale_oak:pale_moss 150 200 150
+mcl_pale_oak:hanging_moss 100 150 100
