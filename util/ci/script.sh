@@ -10,8 +10,10 @@ install_linux_deps() {
 	)
 
 	if command -v dnf; then
+		# Fedora
 		sudo dnf install --setopt=install_weak_deps=False -y "${fpkgs[@]}"
 	else
+		# Ubuntu
 		sudo apt-get update
 		sudo apt-get install -y --no-install-recommends "${upkgs[@]}"
 	fi

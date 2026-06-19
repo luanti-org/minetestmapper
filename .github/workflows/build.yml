@@ -19,9 +19,9 @@ on:
 
 jobs:
   gcc:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install deps
         run: |
           source util/ci/script.sh
@@ -44,9 +44,9 @@ jobs:
           make DESTDIR=/tmp/install install
 
   clang:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install deps
         run: |
           source util/ci/script.sh
@@ -69,7 +69,7 @@ jobs:
     container:
       image: fedora:latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install deps
         run: |
           source util/ci/script.sh
