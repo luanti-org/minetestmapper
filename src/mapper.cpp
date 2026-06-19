@@ -92,7 +92,7 @@ static std::string search_colors(const std::string &worldpath)
 	}
 #endif
 
-	constexpr bool sharedir_valid = !(SHAREDIR[0] == '.' || !SHAREDIR[0]);
+	constexpr bool sharedir_valid = SHAREDIR[0] && SHAREDIR[0] != '.';
 	if (sharedir_valid && file_exists(SHAREDIR "/colors.txt"))
 		return SHAREDIR "/colors.txt";
 

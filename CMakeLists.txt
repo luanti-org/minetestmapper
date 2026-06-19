@@ -19,10 +19,11 @@ if(WIN32)
 	set(BINDIR ".")
 	set(DOCDIR ".")
 else()
-	set(SHAREDIR "share/luanti") # reuse engine share dir
-	set(BINDIR "bin")
-	set(DOCDIR "share/doc/${PROJECT_NAME}")
-	set(MANDIR "share/man")
+	include(GNUInstallDirs)
+	set(SHAREDIR "${CMAKE_INSTALL_FULL_DATADIR}/luanti") # reuse engine share dir
+	set(BINDIR "${CMAKE_INSTALL_FULL_BINDIR}")
+	set(DOCDIR "${CMAKE_INSTALL_FULL_DOCDIR}")
+	set(MANDIR "${CMAKE_INSTALL_FULL_MANDIR}")
 endif()
 
 set(CUSTOM_SHAREDIR "" CACHE STRING "Directory to install data files into")
@@ -41,6 +42,12 @@ set(CUSTOM_DOCDIR "" CACHE STRING "Directory to install documentation into")
 if(NOT CUSTOM_DOCDIR STREQUAL "")
         set(DOCDIR "${CUSTOM_DOCDIR}")
         message(STATUS "Using DOCDIR=${DOCDIR}")
+endif()
+
+set(CUSTOM_MANDIR "" CACHE STRING "Directory to install manpages into")
+if(NOT CUSTOM_MANDIR STREQUAL "")
+        set(MANDIR "${CUSTOM_MANDIR}")
+        message(STATUS "Using MANDIR=${MANDIR}")
 endif()
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
