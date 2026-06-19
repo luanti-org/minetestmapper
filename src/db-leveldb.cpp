@@ -14,9 +14,7 @@ static inline int64_t stoi64(const std::string &s)
 
 static inline std::string i64tos(int64_t i)
 {
-	std::ostringstream os;
-	os << i;
-	return os.str();
+	return std::to_string(i);
 }
 
 // finds the first position in the list where it.x >= x

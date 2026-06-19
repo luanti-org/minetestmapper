@@ -797,12 +797,11 @@ void TileGenerator::renderScale()
 	if (m_scales & SCALE_TOP) {
 		m_image->drawText(24, 0, "X", m_scaleColor);
 		for (int i = (m_xMin / 4) * 4; i <= m_xMax; i += 4) {
-			std::ostringstream buf;
-			buf << i * 16;
+			auto s = std::to_string(i * 16);
 
 			int xPos = getImageX(i * 16, true);
 			if (xPos >= 0) {
-				m_image->drawText(xPos + 2, 0, buf.str(), m_scaleColor);
+				m_image->drawText(xPos + 2, 0, s, m_scaleColor);
 				m_image->drawLine(xPos, 0, xPos, m_yBorder - 1, m_scaleColor);
 			}
 		}
@@ -811,12 +810,11 @@ void TileGenerator::renderScale()
 	if (m_scales & SCALE_LEFT) {
 		m_image->drawText(2, 24, "Z", m_scaleColor);
 		for (int i = (m_zMax / 4) * 4; i >= m_zMin; i -= 4) {
-			std::ostringstream buf;
-			buf << i * 16;
+			auto s = std::to_string(i * 16);
 
 			int yPos = getImageY(i * 16 + 1, true);
 			if (yPos >= 0) {
-				m_image->drawText(2, yPos, buf.str(), m_scaleColor);
+				m_image->drawText(2, yPos, s, m_scaleColor);
 				m_image->drawLine(0, yPos, m_xBorder - 1, yPos, m_scaleColor);
 			}
 		}
@@ -827,13 +825,12 @@ void TileGenerator::renderScale()
 			yPos = m_yBorder + m_mapHeight*m_zoom + scale_d - 12;
 		m_image->drawText(xPos, yPos, "X", m_scaleColor);
 		for (int i = (m_xMin / 4) * 4; i <= m_xMax; i += 4) {
-			std::ostringstream buf;
-			buf << i * 16;
+			auto s = std::to_string(i * 16);
 
 			xPos = getImageX(i * 16, true);
 			yPos = m_yBorder + m_mapHeight*m_zoom;
 			if (xPos >= 0) {
-				m_image->drawText(xPos + 2, yPos, buf.str(), m_scaleColor);
+				m_image->drawText(xPos + 2, yPos, s, m_scaleColor);
 				m_image->drawLine(xPos, yPos, xPos, yPos + 39, m_scaleColor);
 			}
 		}
@@ -844,13 +841,12 @@ void TileGenerator::renderScale()
 			yPos = m_yBorder + m_mapHeight*m_zoom - 24 - 12;
 		m_image->drawText(xPos, yPos, "Z", m_scaleColor);
 		for (int i = (m_zMax / 4) * 4; i >= m_zMin; i -= 4) {
-			std::ostringstream buf;
-			buf << i * 16;
+			auto s = std::to_string(i * 16);
 
 			xPos = m_xBorder + m_mapWidth*m_zoom;
 			yPos = getImageY(i * 16 + 1, true);
 			if (yPos >= 0) {
-				m_image->drawText(xPos + 2, yPos, buf.str(), m_scaleColor);
+				m_image->drawText(xPos + 2, yPos, s, m_scaleColor);
 				m_image->drawLine(xPos, yPos, xPos + 39, yPos, m_scaleColor);
 			}
 		}

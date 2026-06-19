@@ -14,7 +14,7 @@
 
 static inline int64_t stoi64(const std::string &s)
 {
-	std::stringstream tmp(s);
+	std::istringstream tmp(s);
 	int64_t t;
 	tmp >> t;
 	return t;
@@ -22,9 +22,7 @@ static inline int64_t stoi64(const std::string &s)
 
 static inline std::string i64tos(int64_t i)
 {
-	std::ostringstream os;
-	os << i;
-	return os.str();
+	return std::to_string(i);
 }
 
 
@@ -142,7 +140,7 @@ void DBRedis::HMGET(const std::vector<BlockPos> &positions,
 		redisReply *reply;
 		{
 			// storage to preserve validity of .c_str()
-			std::string keys[batch_size];
+			std::string keys[DB_REDIS_HMGET_NUMFIELDS];
 			for (size_t i = 0; i < batch_size; ++i) {
 				keys[i] = i64tos(encodeBlockPos(*position++));
 				argv[i+2] = keys[i].c_str();

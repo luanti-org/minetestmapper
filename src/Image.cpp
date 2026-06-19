@@ -112,7 +112,7 @@ void Image::save(const std::string &filename)
 	if (gdImageFile(m_image, f) == GD_FALSE)
 		throw std::runtime_error("Error saving image");
 #else
-	if (filename.compare(filename.length() - 4, 4, ".png") != 0)
+	if (filename.size() < 4 || filename.compare(filename.length() - 4, 4, ".png") != 0)
 		throw std::runtime_error("Only PNG is supported");
 	FILE *f = fopen(filename.c_str(), "wb");
 	if (!f) {
