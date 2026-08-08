@@ -139,3 +139,10 @@ $schema_new
 INSERT INTO blocks VALUES (0, 0, 0, x'1d28b52ffd2001090000');
 "
 checkerr
+
+msg "block error (out of bounds)"
+writemap "
+$schema_new
+INSERT INTO blocks VALUES (0, 0, 0, x'$(cat util/ci/test_block2)');
+"
+checkerr
