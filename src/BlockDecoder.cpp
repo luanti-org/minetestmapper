@@ -5,9 +5,55 @@
 #include "ZlibDecompressor.h"
 #include "log.h"
 
-static inline uint16_t readU16(const unsigned char *data)
+namespace {
+
+class BufferReader {
+public:
+	BufferReader() = default;
+	BufferReader(const ustring &s) : buffer(s.c_str()), length(s.length()) {}
+
+	/// @brief Returns a pointer to the requested amount of bytes and advances the offset
+	const unsigned char *ptr(size_t requested);
+	bool eof() const {
+		return offset == length;
+	}
+	size_t remaining() const {
+		return length - offset;
+	}
+	void skip(size_t requested) {
+		(void)ptr(requested);
+	}
+	uint8_t u8() {
+		return *ptr(1);
+	}
+	uint16_t u16() {
+		auto *p = ptr(2);
+		return (p[0] << 8) | p[1];
+	}
+	std::string str(size_t requested) {
+		if (requested == 0)
+			return {};
+		return std::string(reinterpret_cast<const char*>(ptr(requested)), requested);
+	}
+
+private:
+	const unsigned char *buffer = nullptr;
+	size_t offset = 0, length = 0;
+};
+
+const unsigned char *BufferReader::ptr(size_t requested)
 {
-	return data[0] << 8 | data[1];
+	if (length - offset < requested) {
+		std::string msg("Reading outside buffer: offset=");
+		msg.append(std::to_string(offset)).append(" length=").append(std::to_string(length))
+			.append(" requested=").append(std::to_string(requested));
+		throw std::runtime_error(msg);
+	}
+	auto *ret = &buffer[offset];
+	offset += requested;
+	return ret;
+}
+
 }
 
 static inline uint16_t readBlockContent(const unsigned char *mapData,
@@ -43,11 +89,9 @@ void BlockDecoder::reset()
 
 void BlockDecoder::decode(const ustring &datastr)
 {
-	const unsigned char *data = datastr.c_str();
-	size_t length = datastr.length();
-	// TODO: Add strict bounds checks everywhere
+	BufferReader reader(datastr);
 
-	uint8_t version = data[0];
+	uint8_t version = reader.u8();
 	if (version < 22) {
 		auto err = "Unsupported map version " + std::to_string(version);
 		throw std::runtime_error(err);
@@ -56,47 +100,40 @@ void BlockDecoder::decode(const ustring &datastr)
 
 	if (version >= 29) {
 		// decompress whole block at once
-		m_zstd_decompressor.setData(data, length, 1);
+		m_zstd_decompressor.setData(reader.ptr(0), reader.remaining(), 0);
 		m_zstd_decompressor.decompress(m_scratch);
-		data = m_scratch.c_str();
-		length = m_scratch.size();
+		reader = BufferReader(m_scratch);
 	}
 
-	size_t dataOffset = 0;
 	if (version >= 29)
-		dataOffset = 7;
+		reader.skip(7);
 	else if (version >= 27)
-		dataOffset = 4;
+		reader.skip(3);
 	else
-		dataOffset = 2;
+		reader.skip(1);
 
 	auto decode_mapping = [&] () {
-		dataOffset++; // mapping version
-		uint16_t numMappings = readU16(data + dataOffset);
-		dataOffset += 2;
+		reader.skip(1); // mapping version
+		uint16_t numMappings = reader.u16();
 		for (int i = 0; i < numMappings; ++i) {
-			uint16_t nodeId = readU16(data + dataOffset);
-			dataOffset += 2;
-			uint16_t nameLen = readU16(data + dataOffset);
-			dataOffset += 2;
-			std::string name(reinterpret_cast<const char *>(data) + dataOffset, nameLen);
+			uint16_t nodeId = reader.u16();
+			uint16_t nameLen = reader.u16();
+			std::string name = reader.str(nameLen);
 			if (name == "air")
 				m_blockAirId = nodeId;
 			else if (name == "ignore")
 				m_blockIgnoreId = nodeId;
 			else
 				m_nameMap[nodeId] = std::move(name);
-			dataOffset += nameLen;
 		}
 	};
 
+	// Mapping comes early
 	if (version >= 29)
 		decode_mapping();
 
-	uint8_t contentWidth = data[dataOffset];
-	dataOffset++;
-	uint8_t paramsWidth = data[dataOffset];
-	dataOffset++;
+	uint8_t contentWidth = reader.u8();
+	uint8_t paramsWidth = reader.u8();
 	if (contentWidth != 1 && contentWidth != 2) {
 		auto err = "Unsupported map version contentWidth=" + std::to_string(contentWidth);
 		throw std::runtime_error(err);
@@ -109,44 +146,39 @@ void BlockDecoder::decode(const ustring &datastr)
 	const size_t mapDataSize = (contentWidth + paramsWidth) * 4096;
 
 	if (version >= 29) {
-		if (length < dataOffset + mapDataSize)
-			throw std::runtime_error("Map data buffer truncated");
-		m_mapData.assign(data + dataOffset, mapDataSize);
+		m_mapData.assign(reader.ptr(mapDataSize), mapDataSize);
 		return; // we have read everything we need and can return early
 	}
 
 	// version < 29
-	ZlibDecompressor decompressor(data, length);
-	decompressor.setSeekPos(dataOffset);
+	ZlibDecompressor decompressor(reader.ptr(0), reader.remaining());
 	decompressor.decompress(m_mapData);
 	decompressor.decompress(m_scratch); // unused metadata
-	dataOffset = decompressor.seekPos();
+	reader.skip(decompressor.seekPos());
 
 	if (m_mapData.size() < mapDataSize)
 		throw std::runtime_error("Map data buffer truncated");
 
 	// Skip unused node timers
 	if (version == 23)
-		dataOffset += 1;
+		reader.skip(1);
 	if (version == 24) {
-		uint8_t ver = data[dataOffset++];
+		uint8_t ver = reader.u8();
 		if (ver == 1) {
-			uint16_t num = readU16(data + dataOffset);
-			dataOffset += 2;
-			dataOffset += 10 * num;
+			uint16_t num = reader.u16();
+			reader.skip(10 * num);
 		}
 	}
 
 	// Skip unused static objects
-	dataOffset++; // Skip static object version
-	uint16_t staticObjectCount = readU16(data + dataOffset);
-	dataOffset += 2;
+	reader.skip(1); // static object version
+	uint16_t staticObjectCount = reader.u16();
 	for (int i = 0; i < staticObjectCount; ++i) {
-		dataOffset += 13;
-		uint16_t dataSize = readU16(data + dataOffset);
-		dataOffset += dataSize + 2;
+		reader.skip(13);
+		uint16_t dataSize = reader.u16();
+		reader.skip(dataSize);
 	}
-	dataOffset += 4; // Skip timestamp
+	reader.skip(4); // timestamp
 
 	// Read mapping
 	decode_mapping();
@@ -166,7 +198,7 @@ const std::string &BlockDecoder::getNode(u8 x, u8 y, u8 z) const
 	uint16_t content = readBlockContent(m_mapData.c_str(), m_contentWidth, position);
 	if (content == m_blockAirId || content == m_blockIgnoreId)
 		return empty;
-	NameMap::const_iterator it = m_nameMap.find(content);
+	auto it = m_nameMap.find(content);
 	if (it == m_nameMap.end()) {
 		errorstream << "Skipping node with invalid ID " << (int)content << std::endl;
 		return empty;

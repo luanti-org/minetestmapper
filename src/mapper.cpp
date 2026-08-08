@@ -265,7 +265,10 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	try {
+#ifdef NDEBUG
+	try
+#endif
+	{
 		if (onlyPrintExtent) {
 			generator.printGeometry(input);
 			return 0;
@@ -278,10 +281,12 @@ int main(int argc, char *argv[])
 			colors = search_colors(input);
 		generator.parseColorsFile(colors);
 		generator.generate(input, output);
-
-	} catch (std::exception &e) {
+	}
+#ifdef NDEBUG
+	catch (std::exception &e) {
 		errorstream << "Exception: " << e.what() << std::endl;
 		return 1;
 	}
+#endif
 	return 0;
 }
