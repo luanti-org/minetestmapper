@@ -55,7 +55,7 @@ static void usage()
 	printf("%s", bottom_text);
 	auto backends = TileGenerator::getSupportedBackends();
 	printf("Supported backends: ");
-	for (auto s : backends)
+	for (const auto &s : backends)
 		printf("%s ", s.c_str());
 	printf("\n");
 #ifdef _WIN32
@@ -72,10 +72,7 @@ static inline bool file_exists(const std::string &path)
 
 static inline int stoi(const char *s)
 {
-	std::istringstream iss(s);
-	int ret;
-	iss >> ret;
-	return ret;
+	return strtol(s, nullptr, 10);
 }
 
 static std::string search_colors(const std::string &worldpath)

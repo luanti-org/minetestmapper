@@ -14,7 +14,7 @@ struct BlockPos {
 	constexpr BlockPos(int16_t x, int16_t y, int16_t z) : x(x), y(y), z(z) {}
 
 	// Implements the inverse ordering so that (2,2,2) < (1,1,1)
-	inline bool operator<(const BlockPos &p) const
+	constexpr bool operator<(const BlockPos &p) const
 	{
 		if (z > p.z)
 			return true;
@@ -74,7 +74,7 @@ public:
  * and is a lot more complicated than it looks.
  */
 
-static inline int16_t unsigned_to_signed(uint16_t i, uint16_t max_positive)
+static constexpr int16_t unsigned_to_signed(uint16_t i, uint16_t max_positive)
 {
 	if (i < max_positive) {
 		return i;
@@ -85,7 +85,7 @@ static inline int16_t unsigned_to_signed(uint16_t i, uint16_t max_positive)
 
 
 // Modulo of a negative number does not work consistently in C
-static inline int64_t pythonmodulo(int64_t i, int64_t mod)
+static constexpr int64_t pythonmodulo(int64_t i, int64_t mod)
 {
 	if (i >= 0) {
 		return i % mod;

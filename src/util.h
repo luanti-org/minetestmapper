@@ -6,13 +6,13 @@
 #define ARRLEN(x) (sizeof(x) / sizeof((x)[0]))
 
 template<typename T>
-static inline T mymax(T a, T b)
+static constexpr T mymax(T a, T b)
 {
 	return (a > b) ? a : b;
 }
 
 template<typename T>
-static inline T mymin(T a, T b)
+static constexpr T mymin(T a, T b)
 {
 	return (a > b) ? b : a;
 }

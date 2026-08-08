@@ -11,13 +11,15 @@
 #include "db-sqlite3.h" // SQLite3Base
 
 namespace {
-	bool parse_pos(std::string position, Player &dst)
+	bool parse_pos(const std::string &position, Player &dst)
 	{
 		if (position.empty())
 			return false;
+		std::istringstream iss;
 		if (position.front() == '(' && position.back() == ')')
-			position = position.substr(1, position.size() - 2);
-		std::istringstream iss(position);
+			iss.str(position.substr(1, position.size() - 2));
+		else
+			iss.str(position);
 		if (!(iss >> dst.x))
 			return false;
 		if (iss.get() != ',')

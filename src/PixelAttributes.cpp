@@ -1,4 +1,5 @@
 #include <cstring>
+#include <cassert>
 
 #include "PixelAttributes.h"
 
@@ -18,6 +19,7 @@ PixelAttributes::~PixelAttributes()
 void PixelAttributes::setWidth(int width)
 {
 	freeAttributes();
+	assert(width >= 0);
 	m_width = width + 1; // 1px gradient calculation
 	for (size_t i = 0; i < LineCount; ++i) {
 		m_pixelAttributes[i] = new PixelAttribute[m_width];

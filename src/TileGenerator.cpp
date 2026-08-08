@@ -83,7 +83,14 @@ static int round_multiple_nosign(int n, int f)
 		return sign * (abs_n + f - (abs_n % f));
 }
 
-static inline unsigned int colorSafeBounds(int channel)
+static constexpr int16_t mod16(int16_t y)
+{
+	if (y < 0)
+		return (y - 15) / 16;
+	return y / 16;
+}
+
+static constexpr unsigned int colorSafeBounds(int channel)
 {
 	return mymin(mymax(channel, 0), 255);
 }
@@ -127,11 +134,10 @@ TileGenerator::TileGenerator():
 	m_drawAlpha(false),
 	m_shading(true),
 	m_dontWriteEmpty(false),
-	m_backend(""),
 	m_xBorder(0),
 	m_yBorder(0),
-	m_db(NULL),
-	m_image(NULL),
+	m_db(nullptr),
+	m_image(nullptr),
 	m_xMin(INT_MAX),
 	m_xMax(INT_MIN),
 	m_zMin(INT_MAX),
@@ -337,12 +343,9 @@ void TileGenerator::parseColorsStream(std::istream &in)
 	while (in.good()) {
 		in.getline(line, sizeof(line));
 
-		for (char *p = line; *p; p++) {
-			if (*p != '#')
-				continue;
-			*p = '\0'; // Cut off at the first #
-			break;
-		}
+		char *tmp = strchr(line, '#');
+		if (tmp)
+			*tmp = '\0'; // cut off at the first #
 		if(!line[0])
 			continue;
 
@@ -418,7 +421,7 @@ void TileGenerator::openDb(const std::string &input_path)
 	}
 
 	if (!read_setting_default("readonly_backend", ifs, "").empty()) {
-		errorstream << "Warning: Map with readonly_backend is not supported. "
+		errorstream << "Warning: Maps with readonly_backend are not supported. "
 			"The result may be incomplete." << std::endl;
 	}
 
@@ -453,13 +456,6 @@ void TileGenerator::closeDatabase()
 	m_db = NULL;
 }
 
-static inline int16_t mod16(int16_t y)
-{
-	if (y < 0)
-		return (y - 15) / 16;
-	return y / 16;
-}
-
 void TileGenerator::loadBlocks()
 {
 	const int16_t yMax = mod16(m_yMax) + 1;
@@ -490,6 +486,10 @@ void TileGenerator::loadBlocks()
 		m_progressMax = count;
 		verbosestream << "Loaded " << count
 			<< " positions (across Z: " << m_positions.size() << ") for rendering" << std::endl;
+		if (count > 0) {
+			verbosestream << "X: [" << m_xMin*16 << ", " << m_xMax*16 << "] "
+				<< "Z: [" << m_zMin*16 << ", " << m_zMax*16 << "]" << std::endl;
+		}
 	}
 }
 
@@ -516,10 +516,10 @@ void TileGenerator::createImage()
 
 	m_mapWidth = (m_xMax - m_xMin + 1) * 16;
 	m_mapHeight = (m_zMax - m_zMin + 1) * 16;
+	m_blockPixelAttributes.setWidth(m_mapWidth);
 
 	m_xBorder = (m_scales & SCALE_LEFT) ? scale_d : 0;
 	m_yBorder = (m_scales & SCALE_TOP) ? scale_d : 0;
-	m_blockPixelAttributes.setWidth(m_mapWidth);
 
 	int image_width, image_height;
 	image_width = (m_mapWidth * m_zoom) + m_xBorder;
@@ -687,7 +687,7 @@ void TileGenerator::renderMapBlock(const BlockDecoder &blk, const BlockPos &pos)
 				const std::string &name = blk.getNode(x, y, z);
 				if (name.empty())
 					continue;
-				ColorMap::const_iterator it = m_colorMap.find(name);
+				auto it = m_colorMap.find(name);
 				if (it == m_colorMap.end()) {
 					m_unknownNodes.insert(name);
 					continue;
