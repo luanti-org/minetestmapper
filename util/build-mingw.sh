@@ -15,7 +15,7 @@ extradlls=(
 
 [ -f "$toolchain_file" ] || exit 1
 variant=win32
-grep -q 'CX?X?_COMPILER.*x86_64-' $toolchain_file && variant=win64
+grep -Eq 'CX?X?_COMPILER.*x86_64-' "$toolchain_file" && variant=win64
 echo "Detected target $variant"
 
 [ -f ./CMakeLists.txt ] || { echo "run from root folder" >&2; exit 1; }
@@ -24,7 +24,7 @@ cmake -S . -B build \
 	-DCMAKE_TOOLCHAIN_FILE="$toolchain_file" \
 	-DCMAKE_EXE_LINKER_FLAGS="-s" \
 	\
-	-DENABLE_LEVELDB=1 \
+	-DENABLE_LEVELDB=ON \
 	\
 	-DLEVELDB_INCLUDE_DIR=$leveldb_dir/include \
 	-DLEVELDB_LIBRARY=$leveldb_dir/lib/libleveldb.dll.a \
