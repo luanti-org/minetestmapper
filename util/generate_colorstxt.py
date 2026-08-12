@@ -15,7 +15,7 @@ except:
 # Instructions for generating a colors.txt file for custom games and/or mods:
 # 1) Add the dumpnodes mod to a Luanti world with the chosen game and mods enabled.
 # 2) Join ingame and run the /dumpnodes chat command.
-# 3) Run this script and poin it to the installation path of the game using -g,
+# 3) Run this script and point it to the installation path of the game using -g,
 #    the path(s) where mods are stored using -m and the nodes.txt in your world folder.
 #    Example command line:
 #      ./util/generate_colorstxt.py --game /usr/share/luanti/games/minetest_game \
@@ -55,8 +55,7 @@ def collect_files(path):
 				dirs.append(entry.path)
 				continue
 			if entry.is_file() and '.' in entry.name:
-				if entry.name not in textures.keys():
-					textures[entry.name] = entry.path
+				textures[entry.name] = entry.path
 	for path2 in dirs:
 		collect_files(path2)
 
@@ -115,6 +114,8 @@ try:
 		print(f"'{gamepath}' doesn't exist or does not contain a game.", file=sys.stderr)
 		exit(1)
 	texturepaths.append(os.path.join(gamepath, "mods"))
+	if os.path.exists(os.path.join(gamepath, "textures")):
+		texturepaths.append(os.path.join(gamepath, "textures"))
 except StopIteration:
 	print("No game path set but one is required. (see --help)", file=sys.stderr)
 	exit(1)
